@@ -1,6 +1,34 @@
 import type { HybridObject } from 'react-native-nitro-modules';
 
+export type HapticEventType = 'transient' | 'continuous';
+export type HapticParameterType = 'intensity' | 'sharpness';
+export type HapticCurveType = 'intensity' | 'sharpness';
+export type HapticEventParameter = {
+  type: HapticParameterType;
+  value: number;
+};
+export type HapticCurveControlPoint = {
+  relativeTime: number;
+  value: number;
+};
+
+export type HapticEvent = {
+  type: HapticEventType;
+  parameters: HapticEventParameter[];
+  relativeTime: number;
+  duration?: number; // Optional for transient events
+};
+
+export type HapticCurve = {
+  type: HapticCurveType;
+  controlPoints: HapticCurveControlPoint[];
+  relativeTime: number;
+};
+
 export interface Ahap
   extends HybridObject<{ ios: 'swift'; android: 'kotlin' }> {
-  multiply(a: number, b: number): number;
+  startHaptic(events: HapticEvent[], curves: HapticCurve[]): void;
+  stopAllHaptics(): void;
+  initializeEngine(): void;
+  destroyEngine(): void;
 }
