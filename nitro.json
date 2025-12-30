@@ -1,0 +1,17 @@
+{
+  "cxxNamespace": ["ahap"],
+  "ios": {
+    "iosModuleName": "Ahap"
+  },
+  "android": {
+    "androidNamespace": ["ahap"],
+    "androidCxxLibName": "ahap"
+  },
+  "autolinking": {
+    "Ahap": {
+      "swift": "Ahap",
+      "kotlin": "Ahap"
+    }
+  },
+  "ignorePaths": ["node_modules"]
+}
