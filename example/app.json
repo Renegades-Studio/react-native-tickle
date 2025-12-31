@@ -1,4 +1,13 @@
 {
-  "name": "AhapExample",
-  "displayName": "AhapExample"
+  "expo": {
+    "name": "AhapExample",
+    "scheme": "ahapexample",
+    "android": {
+      "package": "com.alireza_hadjar.ahapexample"
+    },
+    "ios": {
+      "bundleIdentifier": "com.alireza-hadjar.ahapexample"
+    },
+    "plugins": ["expo-router"]
+  }
 }

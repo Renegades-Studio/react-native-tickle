@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "react-native-ahap": ["../src/index.tsx"]
+    }
+  },
+  "extends": "expo/tsconfig.base"
+}
