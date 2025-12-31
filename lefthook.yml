@@ -1,13 +1,17 @@
 pre-commit:
-  parallel: true
+  parallel: false
   commands:
     lint:
       glob: '*.{js,ts,jsx,tsx}'
       run: npx eslint {staged_files}
 
-    types:
-      glob: '*.{js,ts, jsx, tsx}'
-      run: npx tsc
+    types-root:
+      glob: 'src/**/*.{ts,tsx}'
+      run: npx tsc --noEmit
+
+    types-example:
+      glob: 'example/**/*.{ts,tsx}'
+      run: cd example && npx tsc --noEmit
 commit-msg:
   parallel: true
   commands:

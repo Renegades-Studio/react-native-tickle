@@ -1,9 +1,13 @@
-import { TouchableOpacity, Text, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   useAnimatedStyle,
+  useDerivedValue,
+  withTiming,
+  useSharedValue,
   type SharedValue,
 } from 'react-native-reanimated';
-import { useState, useEffect } from 'react';
+import ReText from './ReText';
 
 interface RecordButtonProps {
   isRecording: SharedValue<boolean>;
@@ -14,44 +18,43 @@ export default function RecordButton({
   isRecording,
   onPress,
 }: RecordButtonProps) {
-  // Track recording state in React state for text rendering
-  const [recording, setRecording] = useState(false);
+  const pressed = useSharedValue(false);
 
-  // Sync shared value to state
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (isRecording.get() !== recording) {
-        setRecording(isRecording.get());
-      }
-    }, 50);
-    return () => clearInterval(interval);
-  }, [isRecording, recording]);
-
-  const handlePress = () => {
-    onPress();
-    setRecording((prev) => !prev);
-  };
+  const tap = Gesture.Tap()
+    .onBegin(() => {
+      pressed.set(true);
+    })
+    .onFinalize(() => {
+      pressed.set(false);
+    })
+    .onEnd(() => {
+      onPress();
+    });
 
   const buttonStyle = useAnimatedStyle(() => ({
     backgroundColor: isRecording.get() ? '#8E8E93' : '#FF3B30',
+    opacity: pressed.get() ? 0.8 : 1,
+    transform: [
+      { scale: withTiming(pressed.get() ? 0.98 : 1, { duration: 100 }) },
+    ],
   }));
 
   const iconStyle = useAnimatedStyle(() => ({
     borderRadius: isRecording.get() ? 2 : 10,
   }));
 
+  const buttonText = useDerivedValue<string>(() =>
+    isRecording.get() ? 'STOP' : 'RECORD'
+  );
+
   return (
     <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.buttonWrapper}
-        onPress={handlePress}
-        activeOpacity={0.8}
-      >
+      <GestureDetector gesture={tap}>
         <Animated.View style={[styles.button, buttonStyle]}>
           <Animated.View style={[styles.icon, iconStyle]} />
-          <Text style={styles.text}>{recording ? 'STOP' : 'RECORD'}</Text>
+          <ReText text={buttonText} style={styles.text} />
         </Animated.View>
-      </TouchableOpacity>
+      </GestureDetector>
     </View>
   );
 }
@@ -61,10 +64,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 16,
   },
-  buttonWrapper: {
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
   button: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -72,6 +71,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 32,
     gap: 12,
+    borderRadius: 12,
   },
   icon: {
     width: 20,

@@ -1,6 +1,7 @@
 import { View, StyleSheet, Text, Dimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDerivedValue } from 'react-native-reanimated';
+import { useState, useEffect } from 'react';
 import MiniTransientPalette from '../components/MiniTransientPalette';
 import MiniContinuousPalette from '../components/MiniContinuousPalette';
 import RecordingTimeline from '../components/RecordingTimeline';
@@ -8,19 +9,30 @@ import RecordButton from '../components/RecordButton';
 import RecordingsList from '../components/RecordingsList';
 import ReText from '../components/ReText';
 import { RecorderProvider, useRecorder } from '../contexts/RecorderContext';
+import { scheduleOnRN } from 'react-native-worklets';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const PALETTE_SIZE = (SCREEN_WIDTH - 48) / 2;
 
-const RecorderContent = () => {
+function RecorderContent() {
   const insets = useSafeAreaInsets();
-
   const {
+    mode,
     isRecording,
+    recordingTime,
+    recordingEvents,
+    isPlaying,
+    playbackTime,
+    playbackEvents,
+    playbackTotalDuration,
+    scrollX,
+    isUserScrolling,
+    paletteResetTrigger,
+    continuousGestureActive,
+    continuousGestureIntensity,
+    continuousGestureSharpness,
     recordings,
-    recordingDuration,
-    recordedEvents,
-    scrollPosition,
+    selectedRecordingId,
     frameCallback,
     startRecording,
     stopRecording,
@@ -28,21 +40,108 @@ const RecorderContent = () => {
     recordContinuousStart,
     recordContinuousUpdate,
     recordContinuousEnd,
-    playRecording,
+    selectRecording,
+    startPlayback,
+    stopPlayback,
+    seekTo,
+    onUserScrollStart,
+    onUserScrollEnd,
     deleteRecording,
   } = useRecorder();
 
+  // Track playing state for list UI
+  const [playingId, setPlayingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (isPlaying.get() && selectedRecordingId) {
+        setPlayingId(selectedRecordingId);
+      } else {
+        setPlayingId(null);
+      }
+    }, 50);
+    return () => clearInterval(interval);
+  }, [isPlaying, selectedRecordingId]);
+
+  // Current time and events based on mode
+  const currentTime = useDerivedValue(() => {
+    const m = mode.get();
+    if (m === 'recording') return recordingTime.get();
+    if (m === 'playback') return playbackTime.get();
+    return 0;
+  });
+
+  const currentEvents = useDerivedValue(() => {
+    const m = mode.get();
+    if (m === 'recording') return recordingEvents.get();
+    if (m === 'playback') return playbackEvents.get();
+    return [];
+  });
+
+  // Duration text
+  const durationText = useDerivedValue(() => {
+    const m = mode.get();
+    if (m === 'recording') {
+      return `${recordingTime.get().toFixed(1)}s`;
+    }
+    if (m === 'playback') {
+      const current = playbackTime.get();
+      const total = playbackTotalDuration.get();
+      return `${current.toFixed(1)}s / ${total.toFixed(1)}s`;
+    }
+    return '';
+  });
+
+  const updateFrameCallbackState = (newState: boolean) => {
+    frameCallback.setActive(newState);
+  };
+
+  // Handlers
   const handleRecordToggle = () => {
+    'worklet';
     if (isRecording.get()) {
       stopRecording();
-      frameCallback.setActive(false);
+      scheduleOnRN(updateFrameCallbackState, false);
     } else {
-      frameCallback.setActive(true);
+      scheduleOnRN(updateFrameCallbackState, true);
       startRecording();
     }
   };
 
-  const handleTransientTrigger = (intensity: number, sharpness: number) => {
+  const handlePlayRecording = (id: string) => {
+    if (selectedRecordingId !== id) {
+      selectRecording(id);
+    }
+    frameCallback.setActive(true);
+    startPlayback();
+  };
+
+  const handlePauseRecording = () => {
+    stopPlayback();
+    frameCallback.setActive(false);
+  };
+
+  const handleSeek = (time: number) => {
+    'worklet';
+    seekTo(time);
+  };
+
+  const handlePause = () => {
+    'worklet';
+    stopPlayback();
+  };
+
+  const handleUserScrollStart = () => {
+    'worklet';
+    onUserScrollStart();
+  };
+
+  const handleUserScrollEnd = () => {
+    'worklet';
+    onUserScrollEnd();
+  };
+
+  const handleTransient = (intensity: number, sharpness: number) => {
     'worklet';
     recordTransient(intensity, sharpness);
   };
@@ -62,76 +161,78 @@ const RecorderContent = () => {
     recordContinuousEnd();
   };
 
-  // Derived text for duration display
-  const durationText = useDerivedValue(() => {
-    if (!isRecording.get()) return '';
-    return `${recordingDuration.get().toFixed(1)}s`;
-  });
-
   return (
-    <View
-      style={[
-        styles.container,
-        {
-          paddingTop: insets.top + 16,
-          paddingBottom: insets.bottom,
-        },
-      ]}
-    >
+    <View style={[styles.container, { paddingTop: insets.top + 16 }]}>
       <Text style={styles.title}>Haptic Recorder</Text>
 
       {/* Palettes */}
-      <View style={styles.palettesContainer}>
+      <View style={styles.palettes}>
         <View style={styles.paletteWrapper}>
           <Text style={styles.paletteLabel}>Continuous</Text>
           <MiniContinuousPalette
             size={PALETTE_SIZE}
+            resetTrigger={paletteResetTrigger}
+            gestureActive={continuousGestureActive}
+            gestureIntensity={continuousGestureIntensity}
+            gestureSharpness={continuousGestureSharpness}
             onContinuousStart={handleContinuousStart}
             onContinuousUpdate={handleContinuousUpdate}
             onContinuousEnd={handleContinuousEnd}
           />
         </View>
-
         <View style={styles.paletteWrapper}>
           <Text style={styles.paletteLabel}>Transient</Text>
           <MiniTransientPalette
             size={PALETTE_SIZE}
-            onHapticTrigger={handleTransientTrigger}
+            resetTrigger={paletteResetTrigger}
+            onHapticTrigger={handleTransient}
           />
         </View>
       </View>
 
       {/* Timeline */}
       <RecordingTimeline
+        mode={mode}
         isRecording={isRecording}
-        duration={recordingDuration}
-        events={recordedEvents}
-        scrollPosition={scrollPosition}
+        isPlaying={isPlaying}
+        currentTime={currentTime}
+        totalDuration={playbackTotalDuration}
+        events={currentEvents}
+        scrollX={scrollX}
+        isUserScrolling={isUserScrolling}
+        onSeek={handleSeek}
+        onPause={handlePause}
+        onUserScrollStart={handleUserScrollStart}
+        onUserScrollEnd={handleUserScrollEnd}
       />
 
-      {/* Recording duration */}
+      {/* Duration */}
       <ReText text={durationText} style={styles.duration} />
 
-      {/* Controls */}
+      {/* Record button */}
       <RecordButton isRecording={isRecording} onPress={handleRecordToggle} />
 
-      {/* Recordings List */}
+      {/* Recordings list */}
       <RecordingsList
         recordings={recordings}
-        onPlay={playRecording}
+        selectedId={selectedRecordingId}
+        playingId={playingId}
+        onSelect={selectRecording}
+        onPlay={handlePlayRecording}
+        onPause={handlePauseRecording}
         onDelete={deleteRecording}
       />
     </View>
   );
-};
+}
 
-export const Recorder = () => {
+export function Recorder() {
   return (
     <RecorderProvider>
       <RecorderContent />
     </RecorderProvider>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -145,7 +246,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 16,
   },
-  palettesContainer: {
+  palettes: {
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 16,

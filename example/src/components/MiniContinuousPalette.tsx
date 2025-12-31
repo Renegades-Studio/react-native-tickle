@@ -3,8 +3,10 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
+  useAnimatedReaction,
   withTiming,
   clamp,
+  type SharedValue,
 } from 'react-native-reanimated';
 import { NitroModules } from 'react-native-nitro-modules';
 import { AhapHybridObject } from 'react-native-ahap';
@@ -17,6 +19,10 @@ const INITIAL_SHARPNESS = 0.5;
 
 interface MiniContinuousPaletteProps {
   size: number;
+  resetTrigger?: SharedValue<number>;
+  gestureActive?: SharedValue<boolean>;
+  gestureIntensity?: SharedValue<number>;
+  gestureSharpness?: SharedValue<number>;
   onContinuousStart?: (intensity: number, sharpness: number) => void;
   onContinuousUpdate?: (intensity: number, sharpness: number) => void;
   onContinuousEnd?: () => void;
@@ -58,6 +64,10 @@ const normalizeCoordinates = (x: number, y: number, size: number) => {
 
 export default function MiniContinuousPalette({
   size,
+  resetTrigger,
+  gestureActive,
+  gestureIntensity,
+  gestureSharpness,
   onContinuousStart,
   onContinuousUpdate,
   onContinuousEnd,
@@ -65,6 +75,18 @@ export default function MiniContinuousPalette({
   const touchX = useSharedValue(size / 2);
   const touchY = useSharedValue(size / 2);
   const bgOpacity = useSharedValue(0);
+
+  // Reset to center when trigger changes
+  useAnimatedReaction(
+    () => resetTrigger?.get() ?? 0,
+    (current, previous) => {
+      if (previous !== null && current !== previous) {
+        touchX.set(size / 2);
+        touchY.set(size / 2);
+        bgOpacity.set(0);
+      }
+    }
+  );
 
   const updateHaptic = (x: number, y: number) => {
     'worklet';
@@ -98,10 +120,16 @@ export default function MiniContinuousPalette({
       startContinuous();
       updateHaptic(clipped.x, clipped.y);
 
+      const normalized = normalizeCoordinates(clipped.x, clipped.y, size);
+      const intensity = INITIAL_INTENSITY * (1 - normalized.y);
+      const sharpness = clamp(INITIAL_SHARPNESS + (normalized.x - 0.5), 0, 1);
+
+      // Update gesture state shared values
+      if (gestureActive) gestureActive.set(true);
+      if (gestureIntensity) gestureIntensity.set(intensity);
+      if (gestureSharpness) gestureSharpness.set(sharpness);
+
       if (onContinuousStart) {
-        const normalized = normalizeCoordinates(clipped.x, clipped.y, size);
-        const intensity = INITIAL_INTENSITY * (1 - normalized.y);
-        const sharpness = clamp(INITIAL_SHARPNESS + (normalized.x - 0.5), 0, 1);
         onContinuousStart(intensity, sharpness);
       }
     })
@@ -111,10 +139,26 @@ export default function MiniContinuousPalette({
       touchY.set(clipped.y);
 
       updateHaptic(clipped.x, clipped.y);
+
+      const normalized = normalizeCoordinates(clipped.x, clipped.y, size);
+      const intensity = INITIAL_INTENSITY * (1 - normalized.y);
+      const sharpness = clamp(INITIAL_SHARPNESS + (normalized.x - 0.5), 0, 1);
+
+      // Update gesture state
+      if (gestureIntensity) gestureIntensity.set(intensity);
+      if (gestureSharpness) gestureSharpness.set(sharpness);
+
+      if (onContinuousUpdate) {
+        onContinuousUpdate(intensity, sharpness);
+      }
     })
     .onEnd(() => {
       bgOpacity.set(withTiming(0, { duration: 100 }));
       stopContinuous();
+
+      // Clear gesture state
+      if (gestureActive) gestureActive.set(false);
+
       if (onContinuousEnd) {
         onContinuousEnd();
       }
@@ -122,6 +166,10 @@ export default function MiniContinuousPalette({
     .onFinalize(() => {
       bgOpacity.set(withTiming(0, { duration: 100 }));
       stopContinuous();
+
+      // Clear gesture state
+      if (gestureActive) gestureActive.set(false);
+
       if (onContinuousEnd) {
         onContinuousEnd();
       }

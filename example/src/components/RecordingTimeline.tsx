@@ -4,77 +4,174 @@ import Animated, {
   useDerivedValue,
   useAnimatedRef,
   scrollTo,
+  useAnimatedScrollHandler,
+  useSharedValue,
+  useAnimatedProps,
   type SharedValue,
 } from 'react-native-reanimated';
 import type { RecordingEvent } from '../types/recording';
 
+type TimelineMode = 'recording' | 'playback' | 'idle';
+
 interface RecordingTimelineProps {
+  mode: SharedValue<TimelineMode>;
   isRecording: SharedValue<boolean>;
-  duration: SharedValue<number>;
+  isPlaying: SharedValue<boolean>;
+  currentTime: SharedValue<number>;
+  totalDuration: SharedValue<number>;
   events: SharedValue<RecordingEvent[]>;
-  scrollPosition: SharedValue<number>;
+  scrollX: SharedValue<number>;
+  isUserScrolling: SharedValue<boolean>;
+  onSeek: (time: number) => void;
+  onPause: () => void;
+  onUserScrollStart: () => void;
+  onUserScrollEnd: () => void;
   height?: number;
 }
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 export const TIMELINE_WIDTH = SCREEN_WIDTH - 32;
 export const PIXELS_PER_SECOND = 100;
+export const PLAYHEAD_OFFSET = TIMELINE_WIDTH / 2;
 
 export default function RecordingTimeline({
+  mode,
   isRecording,
-  duration,
+  isPlaying,
+  currentTime,
+  totalDuration,
   events,
-  scrollPosition,
+  scrollX,
+  isUserScrolling,
+  onSeek,
+  onPause,
+  onUserScrollStart,
+  onUserScrollEnd,
   height = 120,
 }: RecordingTimelineProps) {
   const scrollViewRef = useAnimatedRef<Animated.ScrollView>();
 
-  // Derive playhead position from duration
-  const playheadPosition = useDerivedValue(() => {
-    return duration.get() * PIXELS_PER_SECOND;
+  // Track if user is actively dragging (finger on screen)
+  const isDragging = useSharedValue(false);
+  // Track if momentum is happening
+  const isMomentumScrolling = useSharedValue(false);
+
+  // Content width
+  const contentWidth = useDerivedValue(() => {
+    const m = mode.get();
+    let maxTime = 0;
+    if (m === 'recording') {
+      maxTime = currentTime.get();
+    } else if (m === 'playback') {
+      maxTime = totalDuration.get();
+    }
+    return PLAYHEAD_OFFSET + maxTime * PIXELS_PER_SECOND + PLAYHEAD_OFFSET;
   });
 
-  // Derive timeline width from duration
-  const timelineWidth = useDerivedValue(() => {
-    return Math.max(TIMELINE_WIDTH, duration.get() * PIXELS_PER_SECOND + 100);
-  });
-
-  // Scroll to position on the UI thread using derived value
+  // Auto-scroll when not user scrolling (only when playing or recording)
   useDerivedValue(() => {
-    const scrollX = scrollPosition.get();
-    scrollTo(scrollViewRef, scrollX, 0, false);
+    const userScrolling = isDragging.get() || isMomentumScrolling.get();
+    if (!userScrolling) {
+      scrollTo(scrollViewRef, scrollX.get(), 0, false);
+    }
+    return scrollX.get();
   });
 
-  const playheadStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: playheadPosition.get() }],
-  }));
+  // Handle scroll events
+  const scrollHandler = useAnimatedScrollHandler({
+    onBeginDrag: () => {
+      isDragging.set(true);
+      isMomentumScrolling.set(false);
 
-  const timelineContainerStyle = useAnimatedStyle(() => ({
-    width: timelineWidth.get(),
+      const m = mode.get();
+      if (m !== 'playback') return;
+
+      onUserScrollStart();
+
+      // Pause if playing
+      if (isPlaying.get()) {
+        onPause();
+      }
+    },
+    onScroll: (event) => {
+      const m = mode.get();
+      if (m !== 'playback') return;
+
+      // Only update seek if user is scrolling (dragging or momentum)
+      const userScrolling = isDragging.get() || isMomentumScrolling.get();
+      if (userScrolling) {
+        const time = Math.max(0, event.contentOffset.x / PIXELS_PER_SECOND);
+        onSeek(time);
+      }
+    },
+    onEndDrag: (event) => {
+      isDragging.set(false);
+
+      // Check if momentum will follow
+      const hasVelocity = event.velocity && Math.abs(event.velocity.x) > 0;
+      if (hasVelocity) {
+        isMomentumScrolling.set(true);
+      } else if (isUserScrolling.get()) {
+        // No momentum, scroll ended
+        onUserScrollEnd();
+      }
+    },
+    onMomentumBegin: () => {
+      isMomentumScrolling.set(true);
+    },
+    onMomentumEnd: () => {
+      isMomentumScrolling.set(false);
+      // User scroll fully ended
+      if (isUserScrolling.get()) {
+        onUserScrollEnd();
+      }
+    },
+  });
+
+  // Animated styles
+  const containerStyle = useAnimatedStyle(() => ({
+    width: contentWidth.get(),
     height,
   }));
 
-  // Derive event markers from events shared value
-  const transientEvents = useDerivedValue(() => {
-    return events.get().filter((e) => e.type === 'transient');
+  // Scroll enabled as animated prop to avoid reading during render
+  const scrollViewAnimatedProps = useAnimatedProps(() => ({
+    scrollEnabled: mode.get() === 'playback',
+  }));
+
+  // Derive transient markers
+  const transientMarkers = useDerivedValue(() => {
+    return events
+      .get()
+      .filter((e) => e.type === 'transient')
+      .map((e) => ({
+        position: PLAYHEAD_OFFSET + e.timestamp * PIXELS_PER_SECOND,
+      }));
   });
 
+  // Derive continuous blocks
   const continuousBlocks = useDerivedValue(() => {
-    const blocks: Array<{ startTime: number; endTime: number }> = [];
+    const blocks: Array<{ left: number; width: number }> = [];
     let startTime = -1;
 
     for (const event of events.get()) {
       if (event.type === 'continuous_start') {
         startTime = event.timestamp;
       } else if (event.type === 'continuous_end' && startTime >= 0) {
-        blocks.push({ startTime, endTime: event.timestamp });
+        blocks.push({
+          left: PLAYHEAD_OFFSET + startTime * PIXELS_PER_SECOND,
+          width: (event.timestamp - startTime) * PIXELS_PER_SECOND,
+        });
         startTime = -1;
       }
     }
 
-    // Handle ongoing continuous session
+    // Handle ongoing continuous during recording
     if (startTime >= 0 && isRecording.get()) {
-      blocks.push({ startTime, endTime: duration.get() });
+      blocks.push({
+        left: PLAYHEAD_OFFSET + startTime * PIXELS_PER_SECOND,
+        width: (currentTime.get() - startTime) * PIXELS_PER_SECOND,
+      });
     }
 
     return blocks;
@@ -87,76 +184,73 @@ export default function RecordingTimeline({
         horizontal
         showsHorizontalScrollIndicator={false}
         scrollEventThrottle={16}
+        animatedProps={scrollViewAnimatedProps}
+        onScroll={scrollHandler}
+        decelerationRate="normal"
       >
-        <Animated.View style={timelineContainerStyle}>
-          {/* Grid lines - static for now */}
-          {Array.from({ length: 30 }).map((_, i) => (
-            <View
-              key={`grid-${i}`}
-              style={[styles.gridLine, { left: i * PIXELS_PER_SECOND, height }]}
-            />
-          ))}
-
-          {/* Transient markers */}
-          <TransientMarkers events={transientEvents} height={height} />
-
-          {/* Continuous blocks */}
-          <ContinuousBlocks blocks={continuousBlocks} height={height} />
-
-          {/* Playhead */}
-          <Animated.View style={[styles.playhead, { height }, playheadStyle]} />
+        <Animated.View style={containerStyle}>
+          <GridLines height={height} />
+          <TransientMarkers markers={transientMarkers} height={height} />
+          <ContinuousBlocksView blocks={continuousBlocks} height={height} />
         </Animated.View>
       </Animated.ScrollView>
+
+      {/* Fixed playhead */}
+      <View
+        style={[styles.playhead, { height, left: PLAYHEAD_OFFSET - 1 }]}
+        pointerEvents="none"
+      />
     </View>
   );
 }
 
-// Separate component for transient markers with animated rendering
-function TransientMarkers({
-  events,
-  height,
-}: {
-  events: SharedValue<RecordingEvent[]>;
-  height: number;
-}) {
-  const markerStyles = useDerivedValue(() => {
-    return events.get().map((event) => ({
-      left: event.timestamp * PIXELS_PER_SECOND,
-    }));
-  });
-
+function GridLines({ height }: { height: number }) {
   return (
-    <Animated.View style={StyleSheet.absoluteFill}>
-      {Array.from({ length: 50 }).map((_, index) => (
-        <TransientMarker
-          key={`transient-${index}`}
-          index={index}
-          markerStyles={markerStyles}
-          height={height}
+    <>
+      {Array.from({ length: 61 }).map((_, i) => (
+        <View
+          key={`grid-${i}`}
+          style={[
+            styles.gridLine,
+            { left: PLAYHEAD_OFFSET + i * PIXELS_PER_SECOND, height },
+          ]}
         />
       ))}
-    </Animated.View>
+    </>
+  );
+}
+
+function TransientMarkers({
+  markers,
+  height,
+}: {
+  markers: SharedValue<Array<{ position: number }>>;
+  height: number;
+}) {
+  return (
+    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+      {Array.from({ length: 50 }).map((_, i) => (
+        <TransientMarker key={i} index={i} markers={markers} height={height} />
+      ))}
+    </View>
   );
 }
 
 function TransientMarker({
   index,
-  markerStyles,
+  markers,
   height,
 }: {
   index: number;
-  markerStyles: SharedValue<Array<{ left: number }>>;
+  markers: SharedValue<Array<{ position: number }>>;
   height: number;
 }) {
   const style = useAnimatedStyle(() => {
-    const markers = markerStyles.get();
-    if (index >= markers.length) {
-      return { opacity: 0 };
-    }
-    return {
-      opacity: 1,
-      left: markers[index].left,
-    };
+    const list = markers.get();
+    if (index >= list.length) return { opacity: 0 };
+    const marker = list[index];
+    if (!marker) return { opacity: 0 };
+    return { opacity: 1, left: marker.position };
   });
 
   return (
@@ -166,25 +260,19 @@ function TransientMarker({
   );
 }
 
-// Separate component for continuous blocks
-function ContinuousBlocks({
+function ContinuousBlocksView({
   blocks,
   height,
 }: {
-  blocks: SharedValue<Array<{ startTime: number; endTime: number }>>;
+  blocks: SharedValue<Array<{ left: number; width: number }>>;
   height: number;
 }) {
   return (
-    <Animated.View style={StyleSheet.absoluteFill}>
-      {Array.from({ length: 10 }).map((_, index) => (
-        <ContinuousBlock
-          key={`continuous-${index}`}
-          index={index}
-          blocks={blocks}
-          height={height}
-        />
+    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+      {Array.from({ length: 10 }).map((_, i) => (
+        <ContinuousBlock key={i} index={i} blocks={blocks} height={height} />
       ))}
-    </Animated.View>
+    </View>
   );
 }
 
@@ -194,21 +282,18 @@ function ContinuousBlock({
   height,
 }: {
   index: number;
-  blocks: SharedValue<Array<{ startTime: number; endTime: number }>>;
+  blocks: SharedValue<Array<{ left: number; width: number }>>;
   height: number;
 }) {
   const style = useAnimatedStyle(() => {
-    const blockList = blocks.get();
-    if (index >= blockList.length) {
-      return { opacity: 0 };
-    }
-    const block = blockList[index];
-    const left = block.startTime * PIXELS_PER_SECOND;
-    const width = (block.endTime - block.startTime) * PIXELS_PER_SECOND;
+    const list = blocks.get();
+    if (index >= list.length) return { opacity: 0 };
+    const block = list[index];
+    if (!block) return { opacity: 0 };
     return {
       opacity: 1,
-      left,
-      width: Math.max(width, 4),
+      left: block.left,
+      width: Math.max(block.width, 4),
     };
   });
 
@@ -248,6 +333,7 @@ const styles = StyleSheet.create({
   },
   playhead: {
     position: 'absolute',
+    top: 0,
     width: 2,
     backgroundColor: '#FFFFFF',
     shadowColor: '#000',

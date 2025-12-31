@@ -3,8 +3,10 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
+  useAnimatedReaction,
   withTiming,
   withSequence,
+  type SharedValue,
 } from 'react-native-reanimated';
 import { NitroModules } from 'react-native-nitro-modules';
 import {
@@ -19,6 +21,7 @@ const TOUCH_INDICATOR_SIZE = 30;
 
 interface MiniTransientPaletteProps {
   size: number;
+  resetTrigger?: SharedValue<number>;
   onHapticTrigger?: (intensity: number, sharpness: number) => void;
 }
 
@@ -54,11 +57,23 @@ const calculateSharpnessAndIntensity = (x: number, y: number, size: number) => {
 
 export default function MiniTransientPalette({
   size,
+  resetTrigger,
   onHapticTrigger,
 }: MiniTransientPaletteProps) {
   const touchX = useSharedValue(size / 2);
   const touchY = useSharedValue(size / 2);
   const bgOpacity = useSharedValue(0);
+
+  // Reset to center when trigger changes
+  useAnimatedReaction(
+    () => resetTrigger?.get() ?? 0,
+    (current, previous) => {
+      if (previous !== null && current !== previous) {
+        touchX.set(size / 2);
+        touchY.set(size / 2);
+      }
+    }
+  );
 
   const playTransientHaptic = (
     intensityValue: number,

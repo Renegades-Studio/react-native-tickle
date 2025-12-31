@@ -1,18 +1,38 @@
 import { View, Text, StyleSheet, FlatList } from 'react-native';
 import type { RecordedHaptic } from '../types/recording';
 import RecordingItem from './RecordingItem';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface RecordingsListProps {
   recordings: RecordedHaptic[];
+  selectedId: string | null;
+  playingId: string | null;
+  onSelect: (id: string | null) => void;
   onPlay: (id: string) => void;
+  onPause: (id: string) => void;
   onDelete: (id: string) => void;
 }
 
 export default function RecordingsList({
   recordings,
+  selectedId,
+  playingId,
+  onSelect,
   onPlay,
+  onPause,
   onDelete,
 }: RecordingsListProps) {
+  const insets = useSafeAreaInsets();
+
+  const handleSelect = (id: string) => {
+    // Toggle selection
+    if (selectedId === id) {
+      onSelect(null);
+    } else {
+      onSelect(id);
+    }
+  };
+
   if (recordings.length === 0) {
     return (
       <View style={styles.emptyContainer}>
@@ -33,11 +53,15 @@ export default function RecordingsList({
         renderItem={({ item }) => (
           <RecordingItem
             recording={item}
+            isSelected={selectedId === item.id}
+            isPlaying={playingId === item.id}
+            onSelect={handleSelect}
             onPlay={onPlay}
+            onPause={onPause}
             onDelete={onDelete}
           />
         )}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
       />
     </View>
   );
@@ -53,9 +77,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#FFFFFF',
     marginBottom: 12,
-  },
-  listContent: {
-    paddingBottom: 16,
   },
   emptyContainer: {
     flex: 1,
@@ -75,4 +96,3 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
-
