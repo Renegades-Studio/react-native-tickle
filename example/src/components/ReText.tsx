@@ -1,17 +1,11 @@
 import { useMemo } from 'react';
 import type { TextInputProps, TextProps as RNTextProps } from 'react-native';
-import { StyleSheet, TextInput } from 'react-native';
+import { TextInput } from 'react-native';
 import Animated, {
   type AnimatedProps,
   type SharedValue,
   useAnimatedProps,
 } from 'react-native-reanimated';
-
-const styles = StyleSheet.create({
-  baseStyle: {
-    // Color will be overridden by style prop
-  },
-});
 
 interface TextProps extends Omit<TextInputProps, 'value' | 'style'> {
   text: SharedValue<string>;
@@ -35,7 +29,7 @@ const ReText = (props: TextProps) => {
       underlineColorAndroid="transparent"
       editable={false}
       value={initialValue}
-      style={[styles.baseStyle, style || undefined]}
+      style={style || undefined}
       {...rest}
       {...{ animatedProps }}
     />

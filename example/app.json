@@ -2,6 +2,7 @@
   "expo": {
     "name": "AhapExample",
     "scheme": "ahapexample",
+    "userInterfaceStyle": "automatic",
     "android": {
       "package": "com.alireza_hadjar.ahapexample"
     },
@@ -9,8 +10,6 @@
       "bundleIdentifier": "com.alireza-hadjar.ahapexample",
       "appleTeamId": "LYW59CWY29"
     },
-    "plugins": [
-      "expo-router"
-    ]
+    "plugins": ["expo-router"]
   }
 }
