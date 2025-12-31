@@ -15,12 +15,12 @@ export function setAnimatedInterval<F extends AnyFunction>(
   'worklet';
   let startTimestamp: number;
 
-  const currentId = INTERVAL_ID.value;
-  RUNNING_INTERVALS.value[currentId] = true;
-  INTERVAL_ID.value += 1;
+  const currentId = INTERVAL_ID.get();
+  RUNNING_INTERVALS.set({ ...RUNNING_INTERVALS.get(), [currentId]: true });
+  INTERVAL_ID.set(INTERVAL_ID.get() + 1);
 
   const step = (newTimestamp: number) => {
-    if (!RUNNING_INTERVALS.value[currentId]) {
+    if (!RUNNING_INTERVALS.get()[currentId]) {
       return;
     }
     if (startTimestamp === undefined) {

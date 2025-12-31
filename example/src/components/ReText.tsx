@@ -16,10 +16,10 @@ const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 
 const ReText = (props: TextProps) => {
   const { style, text, ...rest } = props;
-  const initialValue = useMemo(() => text.value, [text]);
+  const initialValue = useMemo(() => text.get(), [text]);
   const animatedProps = useAnimatedProps(() => {
     return {
-      text: text.value,
+      text: text.get(),
       // Here we use any because the text prop is not available in the type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;

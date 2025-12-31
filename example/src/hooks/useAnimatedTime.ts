@@ -99,30 +99,32 @@ export function useAnimatedTime(config: TimerConfig = {}): TimerResult {
       false
     );
 
-    if (pausedAt.value > 0) {
-      const remainingMs = durationMs - pausedAt.value * 1000;
-      pausedAt.value = 0;
+    if (pausedAt.get() > 0) {
+      const remainingMs = durationMs - pausedAt.get() * 1000;
+      pausedAt.set(0);
 
-      timeInSeconds.value = withSequence(
-        withTiming(
-          durationMs / 1000,
-          {
-            duration: remainingMs,
-            easing: Easing.linear,
-          },
-          (finished) => {
-            if (finished && onEndWorklet) {
-              onEndWorklet();
+      timeInSeconds.set(
+        withSequence(
+          withTiming(
+            durationMs / 1000,
+            {
+              duration: remainingMs,
+              easing: Easing.linear,
+            },
+            (finished) => {
+              if (finished && onEndWorklet) {
+                onEndWorklet();
+              }
             }
-          }
-        ),
-        repeatingTimer
+          ),
+          repeatingTimer
+        )
       );
     } else {
-      if (timeInSeconds.value > 0) {
-        timeInSeconds.value = 0;
+      if (timeInSeconds.get() > 0) {
+        timeInSeconds.set(0);
       }
-      timeInSeconds.value = repeatingTimer;
+      timeInSeconds.set(repeatingTimer);
     }
   }, [
     durationMs,
@@ -135,15 +137,15 @@ export function useAnimatedTime(config: TimerConfig = {}): TimerResult {
 
   const stop = useCallback(() => {
     'worklet';
-    pausedAt.value = 0;
-    timeInSeconds.value = 0;
+    pausedAt.set(0);
+    timeInSeconds.set(0);
   }, [pausedAt, timeInSeconds]);
 
   const pause = useCallback(() => {
     'worklet';
-    const currentTime = timeInSeconds.value;
-    pausedAt.value = currentTime;
-    timeInSeconds.value = currentTime;
+    const currentTime = timeInSeconds.get();
+    pausedAt.set(currentTime);
+    timeInSeconds.set(currentTime);
   }, [pausedAt, timeInSeconds]);
 
   const restart = useCallback(() => {
