@@ -19,7 +19,7 @@ interface RecordingTimelineProps {
   currentTime: SharedValue<number>;
   totalDuration: SharedValue<number>;
   events: SharedValue<RecordingEvent[]>;
-  scrollX: SharedValue<number>; // SINGLE SOURCE OF TRUTH for scroll position
+  scrollX: SharedValue<number>;
   isUserScrolling: SharedValue<boolean>;
   onSeek: (time: number) => void;
   onPause: () => void;
@@ -31,7 +31,6 @@ interface RecordingTimelineProps {
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const DEFAULT_HEIGHT = 140;
 
-// Colors
 const INTENSITY_COLOR = '#00B4FF';
 const SHARPNESS_COLOR = '#FF8C32';
 const TRANSIENT_INTENSITY_COLOR = '#00E5FF';
@@ -41,10 +40,8 @@ export const TIMELINE_WIDTH = SCREEN_WIDTH - 32;
 export const PIXELS_PER_SECOND = 100;
 export const PLAYHEAD_OFFSET = TIMELINE_WIDTH / 2;
 
-// Downsampling interval
 const DOWNSAMPLE_INTERVAL_PX = 1;
 
-// Minimum segment width to be treated as a line (otherwise draw as dot)
 const MIN_SEGMENT_WIDTH_FOR_LINE = 15;
 
 interface DataPoint {
@@ -59,11 +56,9 @@ interface ContinuousSegment {
   endX: number;
 }
 
-// Layout constants
 const LANE_GAP = 4;
 const LANE_PADDING = 6;
 
-// Fixed content width (2 minutes max)
 const MAX_CONTENT_WIDTH =
   PLAYHEAD_OFFSET + 120 * PIXELS_PER_SECOND + PLAYHEAD_OFFSET;
 
@@ -74,7 +69,7 @@ export default function RecordingTimeline({
   currentTime: _currentTime,
   totalDuration,
   events,
-  scrollX, // Single source of truth
+  scrollX,
   isUserScrolling,
   onSeek,
   onPause,
@@ -94,8 +89,6 @@ export default function RecordingTimeline({
       isDragging.set(true);
       isMomentumScrolling.set(false);
 
-      // Sync ScrollView to current scrollX position before scroll events start
-      // This prevents a jump when user starts scrolling during auto-playback
       scrollTo(scrollViewRef, scrollX.get(), 0, false);
 
       const m = mode.get();
@@ -114,27 +107,22 @@ export default function RecordingTimeline({
       const userScrolling = isDragging.get() || isMomentumScrolling.get();
       if (!userScrolling) return;
 
-      // Clamp scroll position to valid range
       const maxScroll = totalDuration.get() * PIXELS_PER_SECOND;
       const rawX = event.contentOffset.x;
       const clampedX = Math.min(Math.max(0, rawX), maxScroll);
 
-      // If clamping happened, force ScrollView to the clamped position
       if (clampedX !== rawX) {
         scrollTo(scrollViewRef, clampedX, 0, false);
       }
 
-      // Update scrollX directly - it's the single source of truth
       scrollX.set(clampedX);
 
-      // Notify parent for time display updates
       onSeek(clampedX / PIXELS_PER_SECOND);
     },
 
     onEndDrag: (event) => {
       isDragging.set(false);
 
-      // Snap back if overscrolled
       const m = mode.get();
       if (m === 'playback') {
         const maxScroll = totalDuration.get() * PIXELS_PER_SECOND;
@@ -160,7 +148,6 @@ export default function RecordingTimeline({
     onMomentumEnd: () => {
       isMomentumScrolling.set(false);
 
-      // Snap back if overscrolled after momentum
       const m = mode.get();
       if (m === 'playback') {
         const maxScroll = totalDuration.get() * PIXELS_PER_SECOND;
@@ -178,7 +165,6 @@ export default function RecordingTimeline({
     },
   });
 
-  // Process transients - pure computation, no side effects
   const transients = useDerivedValue<DataPoint[]>(() => {
     return events
       .get()
@@ -190,7 +176,6 @@ export default function RecordingTimeline({
       }));
   });
 
-  // Process continuous with downsampling - pure computation
   const continuousSegments = useDerivedValue<ContinuousSegment[]>(() => {
     const segments: ContinuousSegment[] = [];
     let currentSegment: ContinuousSegment | null = null;
@@ -242,7 +227,6 @@ export default function RecordingTimeline({
     return segments;
   });
 
-  // Lane dimensions - static calculations
   const availableHeight = height - LANE_PADDING * 2 - LANE_GAP;
   const intensityLaneHeight = availableHeight * 0.6;
   const sharpnessLaneHeight = availableHeight * 0.4;
@@ -253,7 +237,6 @@ export default function RecordingTimeline({
 
   return (
     <View style={[styles.container, { height }]}>
-      {/* Fixed size Canvas */}
       <Canvas style={styles.canvas}>
         <Group>
           <GridLines height={height} scrollX={scrollX} />
@@ -277,7 +260,6 @@ export default function RecordingTimeline({
         </Group>
       </Canvas>
 
-      {/* ScrollView for gesture handling */}
       <Animated.ScrollView
         ref={scrollViewRef}
         horizontal
@@ -291,7 +273,6 @@ export default function RecordingTimeline({
         <View style={{ width: MAX_CONTENT_WIDTH, height }} />
       </Animated.ScrollView>
 
-      {/* Fixed playhead */}
       <View
         style={[styles.playhead, { height, left: PLAYHEAD_OFFSET - 1 }]}
         pointerEvents="none"
@@ -300,7 +281,6 @@ export default function RecordingTimeline({
   );
 }
 
-// Grid lines - pure derived value for path computation
 function GridLines({
   height,
   scrollX,
@@ -319,7 +299,6 @@ function GridLines({
     const endSecond =
       Math.ceil((scroll + TIMELINE_WIDTH) / PIXELS_PER_SECOND) + 1;
 
-    // Full-height lines every second
     for (let i = startSecond; i <= Math.min(endSecond, 120); i++) {
       const worldX = PLAYHEAD_OFFSET + i * PIXELS_PER_SECOND;
       const screenX = worldX - scroll;
@@ -344,11 +323,9 @@ function GridLines({
     const endSecond =
       Math.ceil((scroll + TIMELINE_WIDTH) / PIXELS_PER_SECOND) + 1;
 
-    const shortTickHeight = height * 0.05; // Small ticks are 15% of height
-    const mediumTickHeight = height * 0.1; // Medium ticks (0.5s) are 25% of height
+    const shortTickHeight = height * 0.05;
+    const mediumTickHeight = height * 0.1;
 
-    // Small ticks every 0.1 seconds (excluding full seconds)
-    // Mirrored from top and bottom like a ruler
     for (let i = startSecond; i <= Math.min(endSecond, 120); i++) {
       for (let tenth = 1; tenth < 10; tenth++) {
         const time = i + tenth * 0.1;
@@ -359,11 +336,9 @@ function GridLines({
           const isMidpoint = tenth === 5;
           const tickHeight = isMidpoint ? mediumTickHeight : shortTickHeight;
 
-          // Draw from top downward
           p.moveTo(screenX, 0);
           p.lineTo(screenX, tickHeight);
 
-          // Draw from bottom upward (mirrored)
           p.moveTo(screenX, height);
           p.lineTo(screenX, height - tickHeight);
         }
@@ -392,7 +367,6 @@ function GridLines({
   );
 }
 
-// Lane separator - static, no scrollX dependency
 function LaneSeparator({ y }: { y: number }) {
   const path = useDerivedValue(() => {
     const p = Skia.Path.Make();
@@ -404,7 +378,6 @@ function LaneSeparator({ y }: { y: number }) {
   return <Path path={path} color="#3A3A3C" style="stroke" strokeWidth={1} />;
 }
 
-// Continuous lines - pure derived values for path computation
 function ContinuousLines({
   segments,
   scrollX,
@@ -423,7 +396,6 @@ function ContinuousLines({
   const intensityLaneHeight = intensityLaneBottom - intensityLaneTop;
   const sharpnessLaneHeight = sharpnessLaneBottom - sharpnessLaneTop;
 
-  // Line paths for segments with multiple points
   const intensityLinePath = useDerivedValue(() => {
     const allSegments = segments.get();
     const scroll = scrollX.get();
@@ -478,7 +450,6 @@ function ContinuousLines({
     return p;
   });
 
-  // Dot paths for short segments (quick taps)
   const intensityDotsPath = useDerivedValue(() => {
     const allSegments = segments.get();
     const scroll = scrollX.get();
@@ -549,7 +520,6 @@ function ContinuousLines({
   );
 }
 
-// Transient lines - pure derived values for path computation
 function TransientLines({
   transients,
   scrollX,

@@ -24,4 +24,3 @@ export interface ContinuousSession {
     sharpness: number;
   }>;
 }
-

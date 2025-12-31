@@ -41,7 +41,6 @@ interface RecorderContextValue {
   scrollX: SharedValue<number>;
   isUserScrolling: SharedValue<boolean>;
   paletteResetTrigger: SharedValue<number>;
-  // Continuous gesture state - written by palette, read by startRecording
   continuousGestureActive: SharedValue<boolean>;
   continuousGestureIntensity: SharedValue<number>;
   continuousGestureSharpness: SharedValue<number>;
@@ -73,7 +72,6 @@ export function RecorderProvider({ children }: { children: ReactNode }) {
 
   const mode = useSharedValue<TimelineMode>('idle');
 
-  // Recording state
   const isRecording = useSharedValue(false);
   const recordingStartTimestamp = useSharedValue(0);
   const recordingTime = useSharedValue(0);
@@ -83,7 +81,6 @@ export function RecorderProvider({ children }: { children: ReactNode }) {
 
   const CONTINUOUS_UPDATE_THROTTLE_MS = 16;
 
-  // Playback state
   const isPlaying = useSharedValue(false);
   const playbackStartTimestamp = useSharedValue(0);
   const playbackStartTime = useSharedValue(0);
@@ -91,19 +88,15 @@ export function RecorderProvider({ children }: { children: ReactNode }) {
   const playbackEvents = useSharedValue<RecordingEvent[]>([]);
   const playbackTotalDuration = useSharedValue(0);
 
-  // Scroll control
   const scrollX = useSharedValue(0);
   const isUserScrolling = useSharedValue(false);
 
-  // Palette reset trigger - increment to trigger reset
   const paletteResetTrigger = useSharedValue(0);
 
-  // Continuous gesture state - written by palette, read by startRecording
   const continuousGestureActive = useSharedValue(false);
   const continuousGestureIntensity = useSharedValue(0.5);
   const continuousGestureSharpness = useSharedValue(0.5);
 
-  // Frame callback
   const frameCallback = useFrameCallback(() => {
     const now = Date.now();
 
@@ -127,8 +120,6 @@ export function RecorderProvider({ children }: { children: ReactNode }) {
     }
   }, false);
 
-  // === Recording ===
-
   const startRecording = () => {
     'worklet';
     scheduleOnRN(setSelectedRecordingId, null);
@@ -143,7 +134,6 @@ export function RecorderProvider({ children }: { children: ReactNode }) {
     playbackTime.set(0);
     playbackEvents.set([]);
 
-    // Check if continuous gesture is already active - if so, immediately start recording it
     if (continuousGestureActive.get()) {
       const intensity = continuousGestureIntensity.get();
       const sharpness = continuousGestureSharpness.get();
@@ -156,7 +146,6 @@ export function RecorderProvider({ children }: { children: ReactNode }) {
       continuousActive.set(false);
     }
 
-    // Don't reset palette indicators if gesture is active
     if (!continuousGestureActive.get()) {
       paletteResetTrigger.set(paletteResetTrigger.get() + 1);
     }
@@ -169,20 +158,17 @@ export function RecorderProvider({ children }: { children: ReactNode }) {
 
   const stopRecording = () => {
     'worklet';
-    // Get timestamp and check continuous state BEFORE setting isRecording to false
     const timestamp = recordingTime.get();
     const wasContinuousActive = continuousActive.get();
 
     isRecording.set(false);
 
-    // Stop continuous haptic if active
     if (wasContinuousActive) {
       stopContinuousPlayerWorklet();
     }
 
     let events = recordingEvents.get();
 
-    // Close any open continuous block
     if (wasContinuousActive) {
       events = [
         ...events,
@@ -212,10 +198,8 @@ export function RecorderProvider({ children }: { children: ReactNode }) {
       curves: hapticCurves,
     };
 
-    // Add recording and auto-select it
     scheduleOnRN(addRecordingAndSelect, newRecording);
 
-    // Set up playback state for the new recording
     mode.set('playback');
     playbackEvents.set(
       hapticEventsToRecordingEvents(hapticEvents, hapticCurves)
@@ -225,7 +209,6 @@ export function RecorderProvider({ children }: { children: ReactNode }) {
     playbackStartTime.set(0);
     scrollX.set(0);
 
-    // Reset palette indicators to center
     paletteResetTrigger.set(paletteResetTrigger.get() + 1);
   };
 
@@ -257,8 +240,6 @@ export function RecorderProvider({ children }: { children: ReactNode }) {
     const timestamp = recordingTime.get();
     const now = Date.now();
 
-    // If continuous is not active, this is the first update after recording started
-    // while finger was already on the palette - auto-start the continuous block
     if (!continuousActive.get()) {
       continuousActive.set(true);
       lastContinuousUpdateTime.set(now);
@@ -266,13 +247,12 @@ export function RecorderProvider({ children }: { children: ReactNode }) {
         ...recordingEvents.get(),
         { type: 'continuous_start', timestamp, intensity, sharpness },
       ]);
-      return; // The start event includes the initial values
+      return;
     }
 
-    // Throttle updates to avoid too many data points
     const timeSinceLastUpdate = now - lastContinuousUpdateTime.get();
     if (timeSinceLastUpdate < CONTINUOUS_UPDATE_THROTTLE_MS) {
-      return; // Skip this update, too soon
+      return;
     }
 
     lastContinuousUpdateTime.set(now);
@@ -292,8 +272,6 @@ export function RecorderProvider({ children }: { children: ReactNode }) {
       { type: 'continuous_end', timestamp, intensity: 0, sharpness: 0 },
     ]);
   };
-
-  // === Playback ===
 
   const selectRecording = (id: string | null) => {
     if (isPlaying.get()) {
@@ -345,10 +323,8 @@ export function RecorderProvider({ children }: { children: ReactNode }) {
     const currentTime = playbackTime.get();
     const maxTime = playbackTotalDuration.get();
 
-    // Determine the start time
     let startFrom: number;
     if (currentTime >= maxTime) {
-      // At end, restart from beginning
       startFrom = 0;
       playbackTime.set(0);
       scrollX.set(0);
@@ -356,12 +332,10 @@ export function RecorderProvider({ children }: { children: ReactNode }) {
       startFrom = currentTime;
     }
 
-    // Set playback start state
     playbackStartTime.set(startFrom);
     playbackStartTimestamp.set(Date.now());
     isPlaying.set(true);
 
-    // Start haptics from the correct position
     scheduleOnRN(playHapticFromTime, startFrom);
   };
 
@@ -393,7 +367,6 @@ export function RecorderProvider({ children }: { children: ReactNode }) {
   const onUserScrollEnd = () => {
     'worklet';
     isUserScrolling.set(false);
-    // Sync scrollX with playbackTime
     const time = playbackTime.get();
     scrollX.set(time * PIXELS_PER_SECOND);
   };

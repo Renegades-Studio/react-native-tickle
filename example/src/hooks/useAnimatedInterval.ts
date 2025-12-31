@@ -1,4 +1,3 @@
-/* eslint-disable no-underscore-dangle */
 import { makeMutable } from 'react-native-reanimated';
 
 type AnyFunction = (...args: Array<any>) => any;

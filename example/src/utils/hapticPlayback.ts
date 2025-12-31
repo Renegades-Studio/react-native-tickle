@@ -23,9 +23,6 @@ function interpolateValue(
   return p1.value + t * (p2.value - p1.value);
 }
 
-/**
- * Converts HapticEvent array to RecordingEvent array for timeline display
- */
 export function hapticEventsToRecordingEvents(
   events: HapticEvent[],
   curves?: HapticCurve[]
@@ -68,7 +65,6 @@ export function hapticEventsToRecordingEvents(
         sharpness,
       });
 
-      // Find curves that belong to this continuous event
       if (curves) {
         const intensityCurve = curves.find(
           (c) => c.type === 'intensity' && Math.abs(c.relativeTime - eventStart) < 0.001
@@ -77,11 +73,9 @@ export function hapticEventsToRecordingEvents(
           (c) => c.type === 'sharpness' && Math.abs(c.relativeTime - eventStart) < 0.001
         );
 
-        // Generate update events from curve control points
         const intensityPoints = intensityCurve?.controlPoints ?? [];
         const sharpnessPoints = sharpnessCurve?.controlPoints ?? [];
 
-        // Collect all unique timestamps from both curves
         const timestamps = new Set<number>();
         for (const pt of intensityPoints) {
           if (pt.relativeTime > 0) {
@@ -94,11 +88,9 @@ export function hapticEventsToRecordingEvents(
           }
         }
 
-        // Sort timestamps and create update events
         const sortedTimes = Array.from(timestamps).sort((a, b) => a - b);
 
         for (const t of sortedTimes) {
-          // Find or interpolate intensity at this time
           let intensityValue = intensity;
           if (intensityPoints.length > 0) {
             const exactPoint = intensityPoints.find(
@@ -107,7 +99,6 @@ export function hapticEventsToRecordingEvents(
             if (exactPoint) {
               intensityValue = exactPoint.value;
             } else {
-              // Interpolate
               let prev = intensityPoints[0];
               let next = intensityPoints[intensityPoints.length - 1];
               for (let i = 0; i < intensityPoints.length - 1; i++) {
@@ -126,7 +117,6 @@ export function hapticEventsToRecordingEvents(
             }
           }
 
-          // Find or interpolate sharpness at this time
           let sharpnessValue = sharpness;
           if (sharpnessPoints.length > 0) {
             const exactPoint = sharpnessPoints.find(
@@ -135,7 +125,6 @@ export function hapticEventsToRecordingEvents(
             if (exactPoint) {
               sharpnessValue = exactPoint.value;
             } else {
-              // Interpolate
               let prev = sharpnessPoints[0];
               let next = sharpnessPoints[sharpnessPoints.length - 1];
               for (let i = 0; i < sharpnessPoints.length - 1; i++) {
@@ -179,7 +168,6 @@ function trimEvent(event: HapticEvent, seekTime: number): HapticEvent | null {
   'worklet';
 
   if (event.type === 'transient') {
-    // Transient events: skip if before seekTime, otherwise adjust time
     if (event.relativeTime < seekTime) {
       return null;
     }
@@ -192,12 +180,10 @@ function trimEvent(event: HapticEvent, seekTime: number): HapticEvent | null {
   if (event.type === 'continuous') {
     const eventEnd = event.relativeTime + (event.duration ?? 0);
 
-    // Event ends before seekTime - skip it
     if (eventEnd <= seekTime) {
       return null;
     }
 
-    // Event starts after seekTime - just adjust the time
     if (event.relativeTime >= seekTime) {
       return {
         ...event,
@@ -205,7 +191,6 @@ function trimEvent(event: HapticEvent, seekTime: number): HapticEvent | null {
       };
     }
 
-    // Event spans the seekTime - trim the beginning
     const newDuration = eventEnd - seekTime;
     return {
       ...event,
@@ -222,12 +207,10 @@ function trimCurve(curve: HapticCurve, seekTime: number): HapticCurve | null {
 
   const curveEnd = getCurveEndTime(curve);
 
-  // Curve ends before seekTime - skip it
   if (curveEnd <= seekTime) {
     return null;
   }
 
-  // Curve starts after seekTime - just adjust the time
   if (curve.relativeTime >= seekTime) {
     return {
       ...curve,
@@ -235,19 +218,15 @@ function trimCurve(curve: HapticCurve, seekTime: number): HapticCurve | null {
     };
   }
 
-  // Curve spans the seekTime - trim and interpolate control points
   const trimmedControlPoints: Array<{ relativeTime: number; value: number }> =
     [];
 
-  // Calculate the offset within the curve
   const seekOffset = seekTime - curve.relativeTime;
 
-  // Find control points after seek offset and interpolate starting value
   let prevPoint: { relativeTime: number; value: number } | null = null;
 
   for (const point of curve.controlPoints) {
     if (point.relativeTime >= seekOffset) {
-      // If this is the first point after seek, add an interpolated start point
       if (trimmedControlPoints.length === 0 && prevPoint) {
         const interpolatedValue = interpolateValue(
           prevPoint,
@@ -267,12 +246,10 @@ function trimCurve(curve: HapticCurve, seekTime: number): HapticCurve | null {
     prevPoint = point;
   }
 
-  // If no control points remain, skip the curve
   if (trimmedControlPoints.length === 0) {
     return null;
   }
 
-  // Ensure we have a start point at 0
   const firstPoint = trimmedControlPoints[0];
   if (firstPoint && firstPoint.relativeTime > 0 && prevPoint) {
     const interpolatedValue = interpolateValue(
@@ -293,12 +270,6 @@ function trimCurve(curve: HapticCurve, seekTime: number): HapticCurve | null {
   };
 }
 
-/**
- * Trims haptic events and curves to start from a given seek time.
- * - Removes events that end before seekTime
- * - Adjusts events that span the seekTime
- * - Shifts all remaining event times relative to seekTime
- */
 export function trimHapticDataFromSeekTime(
   events: HapticEvent[],
   curves: HapticCurve[],

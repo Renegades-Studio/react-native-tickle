@@ -25,7 +25,6 @@ export default function RecordingsList({
   const insets = useSafeAreaInsets();
 
   const handleSelect = (id: string) => {
-    // Toggle selection
     if (selectedId === id) {
       onSelect(null);
     } else {

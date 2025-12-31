@@ -34,40 +34,6 @@ interface TimerResult {
   timeInSeconds: SharedValue<number>;
 }
 
-/**
- * ### useAnimatedTime
- *
- * Creates a shared value that represents a timer with a specified duration.
- * It provides controls to start, stop, pause, and restart the timer, as well as a read-only shared value representing the timer clock in seconds.
- *
- * @param config {@link TimerConfig} – Configuration options for the timer:
- *   - `autoStart` – Whether the timer should start automatically.
- *   - `durationMs` – The duration of the timer in milliseconds.
- *   - `onEndWorklet` – A worklet function to be called when the timer ends.
- *   - `onStartWorklet` – A worklet function to be called when the timer starts.
- *   - `shouldRepeat` – Whether the timer should repeat after completion.
- *
- * @returns {TimerResult} {@link TimerResult} – An object containing:
- *   - `pause` – A worklet function that pauses the timer.
- *   - `restart` – A worklet function that restarts the timer.
- *   - `start` – A worklet function that starts the timer.
- *   - `stop` – A worklet function that stops the timer.
- *   - `timeInSeconds` – A shared value representing the timer clock in seconds.
- *
- * @example
- * const { restart, start, stop, timeInSeconds } = useAnimatedTime({
- *   autoStart: true,
- *   durationMs: 3000,
- *   onEndWorklet: () => {
- *     'worklet';
- *     console.log('Timer ended');
- *   },
- *   onStartWorklet: () => {
- *     console.log('Timer started');
- *   },
- *   shouldRepeat: true,
- * });
- */
 export function useAnimatedTime(config: TimerConfig = {}): TimerResult {
   const {
     autoStart = false,

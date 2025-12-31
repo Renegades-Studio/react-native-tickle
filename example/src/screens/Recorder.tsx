@@ -49,7 +49,6 @@ function RecorderContent() {
     deleteRecording,
   } = useRecorder();
 
-  // Track playing state for list UI
   const [playingId, setPlayingId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -63,7 +62,6 @@ function RecorderContent() {
     return () => clearInterval(interval);
   }, [isPlaying, selectedRecordingId]);
 
-  // Current time and events based on mode
   const currentTime = useDerivedValue(() => {
     const m = mode.get();
     if (m === 'recording') return recordingTime.get();
@@ -78,7 +76,6 @@ function RecorderContent() {
     return [];
   });
 
-  // Duration text
   const durationText = useDerivedValue(() => {
     const m = mode.get();
     if (m === 'recording') {
@@ -96,7 +93,6 @@ function RecorderContent() {
     frameCallback.setActive(newState);
   };
 
-  // Handlers
   const handleRecordToggle = () => {
     'worklet';
     if (isRecording.get()) {
@@ -165,7 +161,6 @@ function RecorderContent() {
     <View style={[styles.container, { paddingTop: insets.top + 16 }]}>
       <Text style={styles.title}>Haptic Recorder</Text>
 
-      {/* Palettes */}
       <View style={styles.palettes}>
         <View style={styles.paletteWrapper}>
           <Text style={styles.paletteLabel}>Continuous</Text>
@@ -190,7 +185,6 @@ function RecorderContent() {
         </View>
       </View>
 
-      {/* Timeline */}
       <RecordingTimeline
         mode={mode}
         isRecording={isRecording}
@@ -206,13 +200,10 @@ function RecorderContent() {
         onUserScrollEnd={handleUserScrollEnd}
       />
 
-      {/* Duration */}
       <ReText text={durationText} style={styles.duration} />
 
-      {/* Record button */}
       <RecordButton isRecording={isRecording} onPress={handleRecordToggle} />
 
-      {/* Recordings list */}
       <RecordingsList
         recordings={recordings}
         selectedId={selectedRecordingId}
