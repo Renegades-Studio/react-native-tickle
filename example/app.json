@@ -6,8 +6,11 @@
       "package": "com.alireza_hadjar.ahapexample"
     },
     "ios": {
-      "bundleIdentifier": "com.alireza-hadjar.ahapexample"
+      "bundleIdentifier": "com.alireza-hadjar.ahapexample",
+      "appleTeamId": "LYW59CWY29"
     },
-    "plugins": ["expo-router"]
+    "plugins": [
+      "expo-router"
+    ]
   }
 }

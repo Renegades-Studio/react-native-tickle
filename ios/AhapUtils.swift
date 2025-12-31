@@ -26,6 +26,7 @@ class HapticFeedback {
 
     private var engine: CHHapticEngine?
     private var hapticPlayers: [String: CHHapticAdvancedPatternPlayer] = [:]
+    private var continuousPlayer: CHHapticAdvancedPatternPlayer?
 
     public func createAndStartHapticEngine() {
         // Create and configure a haptic engine.
@@ -123,6 +124,72 @@ class HapticFeedback {
             } catch let error {
                 print("Error stopping haptic player \(key): \(error)")
             }
+        }
+    }
+
+    // MARK: - Continuous Player Methods
+
+    public func createContinuousPlayer(initialIntensity: Float, initialSharpness: Float) {
+        do {
+            // Create an intensity parameter
+            let intensity = CHHapticEventParameter(parameterID: .hapticIntensity, value: initialIntensity)
+            
+            // Create a sharpness parameter
+            let sharpness = CHHapticEventParameter(parameterID: .hapticSharpness, value: initialSharpness)
+            
+            // Create a continuous event with a long duration
+            let continuousEvent = CHHapticEvent(
+                eventType: .hapticContinuous,
+                parameters: [intensity, sharpness],
+                relativeTime: 0,
+                duration: 100
+            )
+            
+            // Create a pattern from the continuous haptic event
+            let pattern = try CHHapticPattern(events: [continuousEvent], parameters: [])
+            
+            // Create a player from the continuous haptic pattern
+            continuousPlayer = try engine?.makeAdvancedPlayer(with: pattern)
+        } catch let error {
+            print("Continuous Player Creation Error: \(error)")
+        }
+    }
+
+    public func startContinuousPlayer() {
+        do {
+            try continuousPlayer?.start(atTime: CHHapticTimeImmediate)
+        } catch let error {
+            print("Error starting continuous player: \(error)")
+        }
+    }
+
+    public func updateContinuousPlayer(intensityControl: Float, sharpnessControl: Float) {
+        // Create dynamic parameters for the updated intensity & sharpness
+        let intensityParameter = CHHapticDynamicParameter(
+            parameterID: .hapticIntensityControl,
+            value: intensityControl,
+            relativeTime: 0
+        )
+        
+        let sharpnessParameter = CHHapticDynamicParameter(
+            parameterID: .hapticSharpnessControl,
+            value: sharpnessControl,
+            relativeTime: 0
+        )
+        
+        // Send dynamic parameters to the haptic player
+        do {
+            try continuousPlayer?.sendParameters([intensityParameter, sharpnessParameter], atTime: 0)
+        } catch let error {
+            print("Dynamic Parameter Error: \(error)")
+        }
+    }
+
+    public func stopContinuousPlayer() {
+        do {
+            try continuousPlayer?.stop(atTime: CHHapticTimeImmediate)
+        } catch let error {
+            print("Error stopping continuous player: \(error)")
         }
     }
 }

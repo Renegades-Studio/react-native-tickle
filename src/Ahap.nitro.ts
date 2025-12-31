@@ -31,4 +31,16 @@ export interface Ahap
   stopAllHaptics(): void;
   initializeEngine(): void;
   destroyEngine(): void;
+
+  // Continuous player methods for smooth haptic feedback
+  createContinuousPlayer(
+    initialIntensity: number,
+    initialSharpness: number
+  ): void;
+  startContinuousPlayer(): void;
+  updateContinuousPlayer(
+    intensityControl: number,
+    sharpnessControl: number
+  ): void;
+  stopContinuousPlayer(): void;
 }

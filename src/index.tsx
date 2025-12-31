@@ -24,14 +24,55 @@ export function destroyEngine(): void {
   return AhapHybridObject.destroyEngine();
 }
 
-export function useHapticEngine() {
+// Continuous player methods for smooth haptic feedback
+export function createContinuousPlayer(
+  initialIntensity: number,
+  initialSharpness: number
+): void {
+  'worklet';
+  return AhapHybridObject.createContinuousPlayer(
+    initialIntensity,
+    initialSharpness
+  );
+}
+
+export function startContinuousPlayer(): void {
+  'worklet';
+  return AhapHybridObject.startContinuousPlayer();
+}
+
+export function updateContinuousPlayer(
+  intensityControl: number,
+  sharpnessControl: number
+): void {
+  'worklet';
+  return AhapHybridObject.updateContinuousPlayer(
+    intensityControl,
+    sharpnessControl
+  );
+}
+
+export function stopContinuousPlayer(): void {
+  'worklet';
+  return AhapHybridObject.stopContinuousPlayer();
+}
+
+export function useHapticEngine(options?: {
+  initialIntensity?: number;
+  initialSharpness?: number;
+}) {
+  const { initialIntensity = 1.0, initialSharpness = 0.5 } = options ?? {};
+
   useEffect(() => {
     // Initialize engine for both iOS and Android
     initializeEngine();
+    // Create the continuous player with initial parameters
+    createContinuousPlayer(initialIntensity, initialSharpness);
 
     const off = AppState.addEventListener('change', (state) => {
       if (state === 'active') {
         initializeEngine();
+        createContinuousPlayer(initialIntensity, initialSharpness);
       } else if (state === 'background') {
         destroyEngine();
       }
@@ -40,7 +81,7 @@ export function useHapticEngine() {
     return () => {
       off.remove();
     };
-  }, []);
+  }, [initialIntensity, initialSharpness]);
 }
 
 export { AhapHybridObject };

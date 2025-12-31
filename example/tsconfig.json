@@ -3,7 +3,10 @@
     "baseUrl": ".",
     "paths": {
       "react-native-ahap": ["../src/index.tsx"]
-    }
+    },
+    "verbatimModuleSyntax": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
   },
   "extends": "expo/tsconfig.base"
 }

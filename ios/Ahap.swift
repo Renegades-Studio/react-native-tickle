@@ -24,6 +24,24 @@ class Ahap: HybridAhapSpec {
     haptics.clearHapticPlayers()
   }
 
+  // MARK: - Continuous Player Methods
+
+  func createContinuousPlayer(initialIntensity: Double, initialSharpness: Double) throws {
+    haptics.createContinuousPlayer(initialIntensity: Float(initialIntensity), initialSharpness: Float(initialSharpness))
+  }
+
+  func startContinuousPlayer() throws {
+    haptics.startContinuousPlayer()
+  }
+
+  func updateContinuousPlayer(intensityControl: Double, sharpnessControl: Double) throws {
+    haptics.updateContinuousPlayer(intensityControl: Float(intensityControl), sharpnessControl: Float(sharpnessControl))
+  }
+
+  func stopContinuousPlayer() throws {
+    haptics.stopContinuousPlayer()
+  }
+
   
   func startHaptic(events: [HapticEvent], curves: [HapticCurve]) throws {
     let hapticEvents = events.map { event -> CHHapticEvent in
