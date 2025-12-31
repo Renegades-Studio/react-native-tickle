@@ -26,8 +26,11 @@ function interpolateValue(
 /**
  * Converts HapticEvent array to RecordingEvent array for timeline display
  */
-export function hapticEventsToRecordingEvents(events: HapticEvent[]): Array<{
-  type: 'transient' | 'continuous_start' | 'continuous_end';
+export function hapticEventsToRecordingEvents(
+  events: HapticEvent[],
+  curves?: HapticCurve[]
+): Array<{
+  type: 'transient' | 'continuous_start' | 'continuous_update' | 'continuous_end';
   timestamp: number;
   intensity: number;
   sharpness: number;
@@ -35,7 +38,7 @@ export function hapticEventsToRecordingEvents(events: HapticEvent[]): Array<{
   'worklet';
 
   const result: Array<{
-    type: 'transient' | 'continuous_start' | 'continuous_end';
+    type: 'transient' | 'continuous_start' | 'continuous_update' | 'continuous_end';
     timestamp: number;
     intensity: number;
     sharpness: number;
@@ -55,15 +58,114 @@ export function hapticEventsToRecordingEvents(events: HapticEvent[]): Array<{
         sharpness,
       });
     } else if (event.type === 'continuous') {
+      const eventStart = event.relativeTime;
+      const eventDuration = event.duration ?? 0;
+
       result.push({
         type: 'continuous_start',
-        timestamp: event.relativeTime,
+        timestamp: eventStart,
         intensity,
         sharpness,
       });
+
+      // Find curves that belong to this continuous event
+      if (curves) {
+        const intensityCurve = curves.find(
+          (c) => c.type === 'intensity' && Math.abs(c.relativeTime - eventStart) < 0.001
+        );
+        const sharpnessCurve = curves.find(
+          (c) => c.type === 'sharpness' && Math.abs(c.relativeTime - eventStart) < 0.001
+        );
+
+        // Generate update events from curve control points
+        const intensityPoints = intensityCurve?.controlPoints ?? [];
+        const sharpnessPoints = sharpnessCurve?.controlPoints ?? [];
+
+        // Collect all unique timestamps from both curves
+        const timestamps = new Set<number>();
+        for (const pt of intensityPoints) {
+          if (pt.relativeTime > 0) {
+            timestamps.add(pt.relativeTime);
+          }
+        }
+        for (const pt of sharpnessPoints) {
+          if (pt.relativeTime > 0) {
+            timestamps.add(pt.relativeTime);
+          }
+        }
+
+        // Sort timestamps and create update events
+        const sortedTimes = Array.from(timestamps).sort((a, b) => a - b);
+
+        for (const t of sortedTimes) {
+          // Find or interpolate intensity at this time
+          let intensityValue = intensity;
+          if (intensityPoints.length > 0) {
+            const exactPoint = intensityPoints.find(
+              (p) => Math.abs(p.relativeTime - t) < 0.001
+            );
+            if (exactPoint) {
+              intensityValue = exactPoint.value;
+            } else {
+              // Interpolate
+              let prev = intensityPoints[0];
+              let next = intensityPoints[intensityPoints.length - 1];
+              for (let i = 0; i < intensityPoints.length - 1; i++) {
+                const p1 = intensityPoints[i];
+                const p2 = intensityPoints[i + 1];
+                if (p1 && p2 && p1.relativeTime <= t && p2.relativeTime >= t) {
+                  prev = p1;
+                  next = p2;
+                  break;
+                }
+              }
+              if (prev && next && next.relativeTime !== prev.relativeTime) {
+                const ratio = (t - prev.relativeTime) / (next.relativeTime - prev.relativeTime);
+                intensityValue = prev.value + ratio * (next.value - prev.value);
+              }
+            }
+          }
+
+          // Find or interpolate sharpness at this time
+          let sharpnessValue = sharpness;
+          if (sharpnessPoints.length > 0) {
+            const exactPoint = sharpnessPoints.find(
+              (p) => Math.abs(p.relativeTime - t) < 0.001
+            );
+            if (exactPoint) {
+              sharpnessValue = exactPoint.value;
+            } else {
+              // Interpolate
+              let prev = sharpnessPoints[0];
+              let next = sharpnessPoints[sharpnessPoints.length - 1];
+              for (let i = 0; i < sharpnessPoints.length - 1; i++) {
+                const p1 = sharpnessPoints[i];
+                const p2 = sharpnessPoints[i + 1];
+                if (p1 && p2 && p1.relativeTime <= t && p2.relativeTime >= t) {
+                  prev = p1;
+                  next = p2;
+                  break;
+                }
+              }
+              if (prev && next && next.relativeTime !== prev.relativeTime) {
+                const ratio = (t - prev.relativeTime) / (next.relativeTime - prev.relativeTime);
+                sharpnessValue = prev.value + ratio * (next.value - prev.value);
+              }
+            }
+          }
+
+          result.push({
+            type: 'continuous_update',
+            timestamp: eventStart + t,
+            intensity: intensityValue,
+            sharpness: sharpnessValue,
+          });
+        }
+      }
+
       result.push({
         type: 'continuous_end',
-        timestamp: event.relativeTime + (event.duration ?? 0),
+        timestamp: eventStart + eventDuration,
         intensity: 0,
         sharpness: 0,
       });

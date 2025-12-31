@@ -79,6 +79,9 @@ export function RecorderProvider({ children }: { children: ReactNode }) {
   const recordingTime = useSharedValue(0);
   const recordingEvents = useSharedValue<RecordingEvent[]>([]);
   const continuousActive = useSharedValue(false);
+  const lastContinuousUpdateTime = useSharedValue(0);
+
+  const CONTINUOUS_UPDATE_THROTTLE_MS = 16;
 
   // Playback state
   const isPlaying = useSharedValue(false);
@@ -214,7 +217,9 @@ export function RecorderProvider({ children }: { children: ReactNode }) {
 
     // Set up playback state for the new recording
     mode.set('playback');
-    playbackEvents.set(hapticEventsToRecordingEvents(hapticEvents));
+    playbackEvents.set(
+      hapticEventsToRecordingEvents(hapticEvents, hapticCurves)
+    );
     playbackTotalDuration.set(duration);
     playbackTime.set(0);
     playbackStartTime.set(0);
@@ -250,11 +255,13 @@ export function RecorderProvider({ children }: { children: ReactNode }) {
     if (!isRecording.get()) return;
 
     const timestamp = recordingTime.get();
+    const now = Date.now();
 
     // If continuous is not active, this is the first update after recording started
     // while finger was already on the palette - auto-start the continuous block
     if (!continuousActive.get()) {
       continuousActive.set(true);
+      lastContinuousUpdateTime.set(now);
       recordingEvents.set([
         ...recordingEvents.get(),
         { type: 'continuous_start', timestamp, intensity, sharpness },
@@ -262,6 +269,13 @@ export function RecorderProvider({ children }: { children: ReactNode }) {
       return; // The start event includes the initial values
     }
 
+    // Throttle updates to avoid too many data points
+    const timeSinceLastUpdate = now - lastContinuousUpdateTime.get();
+    if (timeSinceLastUpdate < CONTINUOUS_UPDATE_THROTTLE_MS) {
+      return; // Skip this update, too soon
+    }
+
+    lastContinuousUpdateTime.set(now);
     recordingEvents.set([
       ...recordingEvents.get(),
       { type: 'continuous_update', timestamp, intensity, sharpness },
@@ -293,7 +307,9 @@ export function RecorderProvider({ children }: { children: ReactNode }) {
       const recording = recordings.find((r) => r.id === id);
       if (recording) {
         mode.set('playback');
-        playbackEvents.set(hapticEventsToRecordingEvents(recording.events));
+        playbackEvents.set(
+          hapticEventsToRecordingEvents(recording.events, recording.curves)
+        );
         playbackTotalDuration.set(recording.duration);
         playbackTime.set(0);
         playbackStartTime.set(0);

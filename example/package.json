@@ -11,6 +11,7 @@
     "build:ios": "react-native build-ios --mode Debug"
   },
   "dependencies": {
+    "@shopify/react-native-skia": "^2.4.14",
     "expo": "^54.0.30",
     "expo-constants": "~18.0.12",
     "expo-dev-client": "~6.0.20",
@@ -45,5 +46,8 @@
   },
   "engines": {
     "node": ">=20"
-  }
+  },
+  "trustedDependencies": [
+    "@shopify/react-native-skia"
+  ]
 }
