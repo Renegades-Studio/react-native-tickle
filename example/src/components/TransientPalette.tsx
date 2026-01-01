@@ -7,12 +7,7 @@ import Animated, {
   withSequence,
   useDerivedValue,
 } from 'react-native-reanimated';
-import { NitroModules } from 'react-native-nitro-modules';
-import {
-  AhapHybridObject,
-  type HapticEvent,
-  type HapticCurve,
-} from 'react-native-ahap';
+import { startHaptic } from 'react-native-ahap';
 import type { AnimatedTimeoutID } from '../hooks/useAnimatedTimeout';
 import type { AnimatedIntervalID } from '../hooks/useAnimatedInterval';
 import {
@@ -26,8 +21,6 @@ import {
 import Header from './Header';
 import Footer from './Footer';
 
-const boxedAhap = NitroModules.box(AhapHybridObject);
-
 const TOUCH_INDICATOR_SIZE = 50;
 
 interface TransientPaletteProps {
@@ -39,11 +32,6 @@ interface TransientPaletteProps {
     touchIndicator: string;
   };
 }
-
-const runHaptic = (events: HapticEvent[], curves: HapticCurve[]) => {
-  'worklet';
-  boxedAhap.unbox().startHaptic(events, curves);
-};
 
 const clipLocation = (x: number, y: number, size: number) => {
   'worklet';
@@ -96,7 +84,7 @@ export default function TransientPalette({
     'worklet';
     if (Platform.OS !== 'ios') return;
 
-    runHaptic(
+    startHaptic(
       [
         {
           type: 'transient',

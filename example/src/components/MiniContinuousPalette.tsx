@@ -8,10 +8,11 @@ import Animated, {
   clamp,
   type SharedValue,
 } from 'react-native-reanimated';
-import { NitroModules } from 'react-native-nitro-modules';
-import { AhapHybridObject } from 'react-native-ahap';
-
-const boxedAhap = NitroModules.box(AhapHybridObject);
+import {
+  startContinuousPlayer,
+  stopContinuousPlayer,
+  updateContinuousPlayer,
+} from 'react-native-ahap';
 
 const TOUCH_INDICATOR_SIZE = 30;
 const INITIAL_INTENSITY = 1.0;
@@ -27,24 +28,6 @@ interface MiniContinuousPaletteProps {
   onContinuousUpdate?: (intensity: number, sharpness: number) => void;
   onContinuousEnd?: () => void;
 }
-
-const startContinuous = () => {
-  'worklet';
-  boxedAhap.unbox().startContinuousPlayer();
-};
-
-const updateContinuous = (
-  intensityControl: number,
-  sharpnessControl: number
-) => {
-  'worklet';
-  boxedAhap.unbox().updateContinuousPlayer(intensityControl, sharpnessControl);
-};
-
-const stopContinuous = () => {
-  'worklet';
-  boxedAhap.unbox().stopContinuousPlayer();
-};
 
 const clipLocation = (x: number, y: number, size: number) => {
   'worklet';
@@ -103,7 +86,7 @@ export default function MiniContinuousPalette({
       1
     );
 
-    updateContinuous(dynamicIntensity, dynamicSharpness);
+    updateContinuousPlayer(dynamicIntensity, dynamicSharpness);
 
     if (onContinuousUpdate) {
       onContinuousUpdate(perceivedIntensity, perceivedSharpness);
@@ -117,7 +100,7 @@ export default function MiniContinuousPalette({
       touchY.set(clipped.y);
       bgOpacity.set(withTiming(1, { duration: 100 }));
 
-      startContinuous();
+      startContinuousPlayer();
       updateHaptic(clipped.x, clipped.y);
 
       const normalized = normalizeCoordinates(clipped.x, clipped.y, size);
@@ -154,7 +137,7 @@ export default function MiniContinuousPalette({
     })
     .onEnd(() => {
       bgOpacity.set(withTiming(0, { duration: 100 }));
-      stopContinuous();
+      stopContinuousPlayer();
 
       // Clear gesture state
       if (gestureActive) gestureActive.set(false);
@@ -165,7 +148,7 @@ export default function MiniContinuousPalette({
     })
     .onFinalize(() => {
       bgOpacity.set(withTiming(0, { duration: 100 }));
-      stopContinuous();
+      stopContinuousPlayer();
 
       // Clear gesture state
       if (gestureActive) gestureActive.set(false);

@@ -5,23 +5,29 @@ import type { Ahap, HapticCurve, HapticEvent } from './Ahap.nitro';
 
 const AhapHybridObject = NitroModules.createHybridObject<Ahap>('Ahap');
 
+const boxedAhap = NitroModules.box(AhapHybridObject);
+
 export function startHaptic(
   events: HapticEvent[],
   curves: HapticCurve[]
 ): void {
-  return AhapHybridObject.startHaptic(events, curves);
+  'worklet';
+  return boxedAhap.unbox().startHaptic(events, curves);
 }
 
 export function stopAllHaptics(): void {
-  return AhapHybridObject.stopAllHaptics();
+  'worklet';
+  return boxedAhap.unbox().stopAllHaptics();
 }
 
 export function initializeEngine(): void {
-  return AhapHybridObject.initializeEngine();
+  'worklet';
+  return boxedAhap.unbox().initializeEngine();
 }
 
 export function destroyEngine(): void {
-  return AhapHybridObject.destroyEngine();
+  'worklet';
+  return boxedAhap.unbox().destroyEngine();
 }
 
 // Continuous player methods for smooth haptic feedback
@@ -30,15 +36,14 @@ export function createContinuousPlayer(
   initialSharpness: number
 ): void {
   'worklet';
-  return AhapHybridObject.createContinuousPlayer(
-    initialIntensity,
-    initialSharpness
-  );
+  return boxedAhap
+    .unbox()
+    .createContinuousPlayer(initialIntensity, initialSharpness);
 }
 
 export function startContinuousPlayer(): void {
   'worklet';
-  return AhapHybridObject.startContinuousPlayer();
+  return boxedAhap.unbox().startContinuousPlayer();
 }
 
 export function updateContinuousPlayer(
@@ -46,15 +51,14 @@ export function updateContinuousPlayer(
   sharpnessControl: number
 ): void {
   'worklet';
-  return AhapHybridObject.updateContinuousPlayer(
-    intensityControl,
-    sharpnessControl
-  );
+  return boxedAhap
+    .unbox()
+    .updateContinuousPlayer(intensityControl, sharpnessControl);
 }
 
 export function stopContinuousPlayer(): void {
   'worklet';
-  return AhapHybridObject.stopContinuousPlayer();
+  return boxedAhap.unbox().stopContinuousPlayer();
 }
 
 export function useHapticEngine(options?: {

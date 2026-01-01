@@ -5,13 +5,12 @@ import {
   type SharedValue,
   type FrameCallback,
 } from 'react-native-reanimated';
-import { NitroModules } from 'react-native-nitro-modules';
 import type { RecordedHaptic, RecordingEvent } from '../types/recording';
 import type { HapticEvent, HapticCurve } from 'react-native-ahap';
 import {
   startHaptic,
   stopAllHaptics,
-  AhapHybridObject,
+  stopContinuousPlayer,
 } from 'react-native-ahap';
 import {
   trimHapticDataFromSeekTime,
@@ -19,13 +18,6 @@ import {
 } from '../utils/hapticPlayback';
 import { PIXELS_PER_SECOND } from '../components/RecordingTimeline';
 import { scheduleOnRN } from 'react-native-worklets';
-
-const boxedAhap = NitroModules.box(AhapHybridObject);
-
-const stopContinuousPlayerWorklet = () => {
-  'worklet';
-  boxedAhap.unbox().stopContinuousPlayer();
-};
 
 type TimelineMode = 'recording' | 'playback' | 'idle';
 
@@ -164,7 +156,7 @@ export function RecorderProvider({ children }: { children: ReactNode }) {
     isRecording.set(false);
 
     if (wasContinuousActive) {
-      stopContinuousPlayerWorklet();
+      stopContinuousPlayer();
     }
 
     let events = recordingEvents.get();
@@ -304,6 +296,7 @@ export function RecorderProvider({ children }: { children: ReactNode }) {
   };
 
   const playHapticFromTime = (seekTime: number) => {
+    'worklet';
     const recording = recordings.find((r) => r.id === selectedRecordingId);
     if (!recording) return;
 
@@ -336,20 +329,20 @@ export function RecorderProvider({ children }: { children: ReactNode }) {
     playbackStartTimestamp.set(Date.now());
     isPlaying.set(true);
 
-    scheduleOnRN(playHapticFromTime, startFrom);
+    playHapticFromTime(startFrom);
   };
 
   const stopPlayback = () => {
     'worklet';
     isPlaying.set(false);
-    scheduleOnRN(stopAllHaptics);
+    stopAllHaptics();
   };
 
   const seekTo = (time: number) => {
     'worklet';
     if (isPlaying.get()) {
       isPlaying.set(false);
-      scheduleOnRN(stopAllHaptics);
+      stopAllHaptics();
     }
 
     const clampedTime = Math.max(

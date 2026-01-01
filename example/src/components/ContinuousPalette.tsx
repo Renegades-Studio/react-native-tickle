@@ -7,12 +7,13 @@ import Animated, {
   useDerivedValue,
   clamp,
 } from 'react-native-reanimated';
-import { NitroModules } from 'react-native-nitro-modules';
-import { AhapHybridObject } from 'react-native-ahap';
+import {
+  startContinuousPlayer,
+  stopContinuousPlayer,
+  updateContinuousPlayer,
+} from 'react-native-ahap';
 import Header from './Header';
 import Footer from './Footer';
-
-const boxedAhap = NitroModules.box(AhapHybridObject);
 
 const TOUCH_INDICATOR_SIZE = 50;
 const INITIAL_INTENSITY = 1.0;
@@ -27,24 +28,6 @@ interface ContinuousPaletteProps {
     touchIndicator: string;
   };
 }
-
-const startContinuous = () => {
-  'worklet';
-  boxedAhap.unbox().startContinuousPlayer();
-};
-
-const updateContinuous = (
-  intensityControl: number,
-  sharpnessControl: number
-) => {
-  'worklet';
-  boxedAhap.unbox().updateContinuousPlayer(intensityControl, sharpnessControl);
-};
-
-const stopContinuous = () => {
-  'worklet';
-  boxedAhap.unbox().stopContinuousPlayer();
-};
 
 const clipLocation = (x: number, y: number, size: number) => {
   'worklet';
@@ -93,7 +76,7 @@ export default function ContinuousPalette({
     sharpness.set(clamp(perceivedSharpness, 0, 1));
     intensity.set(perceivedIntensity);
 
-    updateContinuous(dynamicIntensity, dynamicSharpness);
+    updateContinuousPlayer(dynamicIntensity, dynamicSharpness);
   };
 
   const gesture = Gesture.Pan()
@@ -104,7 +87,7 @@ export default function ContinuousPalette({
       touchAlpha.set(1);
       bgOpacity.set(withTiming(1, { duration: 100 }));
 
-      startContinuous();
+      startContinuousPlayer();
       updateHaptic(clipped.x, clipped.y);
     })
     .onUpdate((event) => {
@@ -116,11 +99,11 @@ export default function ContinuousPalette({
     })
     .onEnd(() => {
       bgOpacity.set(withTiming(0, { duration: 100 }));
-      stopContinuous();
+      stopContinuousPlayer();
     })
     .onFinalize(() => {
       bgOpacity.set(withTiming(0, { duration: 100 }));
-      stopContinuous();
+      stopContinuousPlayer();
     });
 
   const touchStyle = useAnimatedStyle(() => {

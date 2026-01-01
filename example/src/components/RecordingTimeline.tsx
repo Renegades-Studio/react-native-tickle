@@ -8,9 +8,8 @@ import Animated, {
   useSharedValue,
   type SharedValue,
 } from 'react-native-reanimated';
-import { AhapHybridObject } from 'react-native-ahap';
+import { startHaptic } from 'react-native-ahap';
 import type { RecordingEvent } from '../types/recording';
-import { NitroModules } from 'react-native-nitro-modules';
 
 type TimelineMode = 'recording' | 'playback' | 'idle';
 
@@ -64,8 +63,6 @@ const LANE_PADDING = 6;
 const MAX_CONTENT_WIDTH =
   PLAYHEAD_OFFSET + 120 * PIXELS_PER_SECOND + PLAYHEAD_OFFSET;
 
-const boxedAhap = NitroModules.box(AhapHybridObject);
-
 export default function RecordingTimeline({
   mode,
   isRecording: _isRecording,
@@ -92,7 +89,7 @@ export default function RecordingTimeline({
 
   const triggerHaptic = (intensity: number, sharpness: number) => {
     'worklet';
-    boxedAhap.unbox().startHaptic(
+    startHaptic(
       [
         {
           type: 'transient',

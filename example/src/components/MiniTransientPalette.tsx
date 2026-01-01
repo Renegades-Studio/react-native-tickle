@@ -8,14 +8,7 @@ import Animated, {
   withSequence,
   type SharedValue,
 } from 'react-native-reanimated';
-import { NitroModules } from 'react-native-nitro-modules';
-import {
-  AhapHybridObject,
-  type HapticEvent,
-  type HapticCurve,
-} from 'react-native-ahap';
-
-const boxedAhap = NitroModules.box(AhapHybridObject);
+import { startHaptic } from 'react-native-ahap';
 
 const TOUCH_INDICATOR_SIZE = 30;
 
@@ -24,11 +17,6 @@ interface MiniTransientPaletteProps {
   resetTrigger?: SharedValue<number>;
   onHapticTrigger?: (intensity: number, sharpness: number) => void;
 }
-
-const runHaptic = (events: HapticEvent[], curves: HapticCurve[]) => {
-  'worklet';
-  boxedAhap.unbox().startHaptic(events, curves);
-};
 
 const clipLocation = (x: number, y: number, size: number) => {
   'worklet';
@@ -82,7 +70,7 @@ export default function MiniTransientPalette({
     'worklet';
     if (Platform.OS !== 'ios') return;
 
-    runHaptic(
+    startHaptic(
       [
         {
           type: 'transient',
