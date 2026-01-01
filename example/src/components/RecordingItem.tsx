@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Share } from 'react-native';
 import type { RecordedHaptic } from '../types/recording';
 
 interface RecordingItemProps {
@@ -42,6 +42,19 @@ export default function RecordingItem({
     }
   };
 
+  const handleExport = async () => {
+    try {
+      const jsonData = JSON.stringify(recording, null, 2);
+
+      await Share.share({
+        message: jsonData,
+        title: `Export ${recording.name}`,
+      });
+    } catch (error) {
+      console.error('Error sharing recording:', error);
+    }
+  };
+
   return (
     <TouchableOpacity
       onPress={() => onSelect(recording.id)}
@@ -80,6 +93,13 @@ export default function RecordingItem({
               ) : (
                 <View style={styles.playIcon} />
               )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.button, styles.exportButton]}
+              onPress={handleExport}
+            >
+              <Text style={styles.buttonText}>↗</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -146,6 +166,9 @@ const styles = StyleSheet.create({
   },
   playButton: {
     backgroundColor: '#007AFF',
+  },
+  exportButton: {
+    backgroundColor: '#34C759',
   },
   deleteButton: {
     backgroundColor: '#FF3B30',
