@@ -50,14 +50,14 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://google.com.git"
+    "url": "git+https://github.com/renegades-xyz/react-native-ahap.git"
   },
-  "author": "Alireza Hadjar <57192409+AlirezaHadjar@users.noreply.github.com> (https://google.com)",
+  "author": "Renegades <info@renegades.xyz> (https://renegades.xyz)",
   "license": "MIT",
   "bugs": {
-    "url": "https://google.com/issues"
+    "url": "https://github.com/Renegades-Studio/react-native-ahaps/issues"
   },
-  "homepage": "https://google.com#readme",
+  "homepage": "https://github.com/Renegades-Studio/react-native-ahaps#readme",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },

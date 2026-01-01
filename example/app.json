@@ -4,10 +4,10 @@
     "scheme": "ahapexample",
     "userInterfaceStyle": "automatic",
     "android": {
-      "package": "com.alireza_hadjar.ahapexample"
+      "package": "com.renegades.ahaps"
     },
     "ios": {
-      "bundleIdentifier": "com.alireza-hadjar.ahapexample",
+      "bundleIdentifier": "com.renegades.ahaps",
       "appleTeamId": "LYW59CWY29"
     },
     "plugins": ["expo-router"]
