@@ -62,7 +62,7 @@ export default function RecordButton({
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 16,
-    paddingVertical: 16,
+    marginTop: 16,
   },
   button: {
     flexDirection: 'row',

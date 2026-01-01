@@ -1,4 +1,11 @@
-import { View, Text, TouchableOpacity, StyleSheet, Share } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Share,
+  TextInput,
+} from 'react-native';
 import type { RecordedHaptic } from '../types/recording';
 
 interface RecordingItemProps {
@@ -9,6 +16,7 @@ interface RecordingItemProps {
   onPlay: (id: string) => void;
   onPause: (id: string) => void;
   onDelete: (id: string) => void;
+  onNameChange: (id: string, name: string) => void;
 }
 
 export default function RecordingItem({
@@ -19,6 +27,7 @@ export default function RecordingItem({
   onPlay,
   onPause,
   onDelete,
+  onNameChange,
 }: RecordingItemProps) {
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -59,10 +68,22 @@ export default function RecordingItem({
     <TouchableOpacity
       onPress={() => onSelect(recording.id)}
       activeOpacity={0.8}
+      disabled={isSelected}
     >
       <View style={[styles.container, isSelected && styles.selectedContainer]}>
         <View style={styles.info}>
-          <Text style={styles.name}>{recording.name}</Text>
+          <TextInput
+            style={styles.name}
+            editable={isSelected}
+            pointerEvents={isSelected ? 'auto' : 'none'}
+            defaultValue={recording.name}
+            onChangeText={(text) => {
+              onNameChange(recording.id, text);
+            }}
+            returnKeyType="done"
+            placeholderTextColor="#636366"
+            maxLength={50}
+          />
           <View style={styles.meta}>
             <Text style={styles.metaText}>
               {formatDuration(recording.duration)}
@@ -139,6 +160,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#FFFFFF',
     marginBottom: 4,
+    paddingEnd: 16,
   },
   meta: {
     flexDirection: 'row',
@@ -158,9 +180,9 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   button: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 30,
+    height: 30,
+    borderRadius: 30 / 2,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -47,6 +47,7 @@ function RecorderContent() {
     onUserScrollStart,
     onUserScrollEnd,
     deleteRecording,
+    renameRecording,
   } = useRecorder();
 
   const [playingId, setPlayingId] = useState<string | null>(null);
@@ -212,6 +213,7 @@ function RecorderContent() {
         onPlay={handlePlayRecording}
         onPause={handlePauseRecording}
         onDelete={deleteRecording}
+        onNameChange={renameRecording}
       />
     </View>
   );

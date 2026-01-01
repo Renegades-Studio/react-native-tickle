@@ -1,8 +1,15 @@
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+} from 'react-native';
 import type { RecordedHaptic } from '../types/recording';
 import RecordingItem from './RecordingItem';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Link } from 'expo-router';
+import { KeyboardStickyView } from 'react-native-keyboard-controller';
 
 interface RecordingsListProps {
   recordings: RecordedHaptic[];
@@ -12,6 +19,7 @@ interface RecordingsListProps {
   onPlay: (id: string) => void;
   onPause: (id: string) => void;
   onDelete: (id: string) => void;
+  onNameChange: (id: string, name: string) => void;
 }
 
 export default function RecordingsList({
@@ -22,6 +30,7 @@ export default function RecordingsList({
   onPlay,
   onPause,
   onDelete,
+  onNameChange,
 }: RecordingsListProps) {
   const insets = useSafeAreaInsets();
 
@@ -45,7 +54,7 @@ export default function RecordingsList({
   }
 
   return (
-    <View style={styles.container}>
+    <KeyboardStickyView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Recordings</Text>
         <Link href="/import-modal" asChild>
@@ -57,6 +66,8 @@ export default function RecordingsList({
       <FlatList
         data={recordings}
         keyExtractor={(item) => item.id}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
         renderItem={({ item }) => (
           <RecordingItem
             recording={item}
@@ -66,11 +77,12 @@ export default function RecordingsList({
             onPlay={onPlay}
             onPause={onPause}
             onDelete={onDelete}
+            onNameChange={onNameChange}
           />
         )}
         contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
       />
-    </View>
+    </KeyboardStickyView>
   );
 }
 
@@ -78,6 +90,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 16,
+    paddingTop: 16,
+    borderRadius: 30,
+    overflow: 'hidden',
+    backgroundColor: '#000',
   },
   header: {
     flexDirection: 'row',
