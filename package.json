@@ -35,6 +35,7 @@
   ],
   "scripts": {
     "example": "yarn workspace react-native-ahap-example",
+    "postinstall": "bash scripts/postinstall.sh",
     "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
     "prepare": "bob build",
     "nitrogen": "nitrogen",

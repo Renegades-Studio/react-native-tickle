@@ -8,7 +8,10 @@
     },
     "ios": {
       "bundleIdentifier": "com.renegades.ahaps",
-      "appleTeamId": "LYW59CWY29"
+      "appleTeamId": "LYW59CWY29",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "plugins": [
       "expo-router"
