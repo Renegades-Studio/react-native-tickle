@@ -1,4 +1,4 @@
-import { View, StyleSheet, Platform } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   useSharedValue,
@@ -64,7 +64,6 @@ export default function ContinuousPalette({
 
   const updateHaptic = (x: number, y: number) => {
     'worklet';
-    if (Platform.OS !== 'ios') return;
 
     const normalized = normalizeCoordinates(x, y, size);
     const dynamicIntensity = 1 - normalized.y;

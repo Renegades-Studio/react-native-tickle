@@ -93,10 +93,7 @@
     "react-native": "*",
     "react-native-nitro-modules": "^0.32.0"
   },
-  "workspaces": [
-    "example"
-  ],
-  "packageManager": "yarn@4.11.0",
+  "packageManager": "bun@1.1.38",
   "react-native-builder-bob": {
     "source": "src",
     "output": "lib",

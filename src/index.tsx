@@ -12,21 +12,25 @@ export function startHaptic(
   curves: HapticCurve[]
 ): void {
   'worklet';
+
   return boxedAhap.unbox().startHaptic(events, curves);
 }
 
 export function stopAllHaptics(): void {
   'worklet';
+
   return boxedAhap.unbox().stopAllHaptics();
 }
 
 export function initializeEngine(): void {
   'worklet';
+
   return boxedAhap.unbox().initializeEngine();
 }
 
 export function destroyEngine(): void {
   'worklet';
+
   return boxedAhap.unbox().destroyEngine();
 }
 
@@ -36,6 +40,7 @@ export function createContinuousPlayer(
   initialSharpness: number
 ): void {
   'worklet';
+
   return boxedAhap
     .unbox()
     .createContinuousPlayer(initialIntensity, initialSharpness);
@@ -43,6 +48,7 @@ export function createContinuousPlayer(
 
 export function startContinuousPlayer(): void {
   'worklet';
+
   return boxedAhap.unbox().startContinuousPlayer();
 }
 
@@ -51,6 +57,7 @@ export function updateContinuousPlayer(
   sharpnessControl: number
 ): void {
   'worklet';
+
   return boxedAhap
     .unbox()
     .updateContinuousPlayer(intensityControl, sharpnessControl);

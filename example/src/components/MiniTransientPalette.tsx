@@ -1,4 +1,4 @@
-import { View, StyleSheet, Platform } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   useSharedValue,
@@ -68,7 +68,6 @@ export default function MiniTransientPalette({
     sharpnessValue: number
   ) => {
     'worklet';
-    if (Platform.OS !== 'ios') return;
 
     startHaptic(
       [
