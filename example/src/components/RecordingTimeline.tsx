@@ -8,7 +8,9 @@ import Animated, {
   useSharedValue,
   type SharedValue,
 } from 'react-native-reanimated';
+import { AhapHybridObject } from 'react-native-ahap';
 import type { RecordingEvent } from '../types/recording';
+import { NitroModules } from 'react-native-nitro-modules';
 
 type TimelineMode = 'recording' | 'playback' | 'idle';
 
@@ -62,6 +64,8 @@ const LANE_PADDING = 6;
 const MAX_CONTENT_WIDTH =
   PLAYHEAD_OFFSET + 120 * PIXELS_PER_SECOND + PLAYHEAD_OFFSET;
 
+const boxedAhap = NitroModules.box(AhapHybridObject);
+
 export default function RecordingTimeline({
   mode,
   isRecording: _isRecording,
@@ -84,11 +88,30 @@ export default function RecordingTimeline({
   const isDragging = useSharedValue(false);
   const isMomentumScrolling = useSharedValue(false);
   const hittingMaxScroll = useSharedValue(false);
+  const lastHapticMark = useSharedValue(-1);
+
+  const triggerHaptic = (intensity: number, sharpness: number) => {
+    'worklet';
+    boxedAhap.unbox().startHaptic(
+      [
+        {
+          type: 'transient',
+          relativeTime: 0,
+          parameters: [
+            { type: 'intensity', value: intensity },
+            { type: 'sharpness', value: sharpness },
+          ],
+        },
+      ],
+      []
+    );
+  };
 
   const scrollHandler = useAnimatedScrollHandler({
     onBeginDrag: () => {
       isDragging.set(true);
       isMomentumScrolling.set(false);
+      lastHapticMark.set(-1); // Reset to allow haptic on first mark
 
       scrollTo(scrollViewRef, scrollX.get(), 0, false);
 
@@ -121,6 +144,22 @@ export default function RecordingTimeline({
       }
 
       scrollX.set(clampedX);
+
+      // Haptic feedback at timeline marks
+      const currentTimeSeconds = clampedX / PIXELS_PER_SECOND;
+      const currentMark = Math.floor(currentTimeSeconds * 10); // 0.1s precision
+      const lastMark = lastHapticMark.get();
+
+      if (currentMark !== lastMark) {
+        lastHapticMark.set(currentMark);
+
+        // Check if it's a full second mark (stronger haptic)
+        if (currentMark % 10 === 0) {
+          triggerHaptic(0.6, 0.8); // Stronger haptic at 1s marks
+        } else {
+          triggerHaptic(0.3, 0.7); // Light haptic at 0.1s marks
+        }
+      }
 
       onSeek(clampedX / PIXELS_PER_SECOND);
     },
