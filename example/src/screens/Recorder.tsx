@@ -8,7 +8,7 @@ import RecordingTimeline from '../components/RecordingTimeline';
 import RecordButton from '../components/RecordButton';
 import RecordingsList from '../components/RecordingsList';
 import ReText from '../components/ReText';
-import { RecorderProvider, useRecorder } from '../contexts/RecorderContext';
+import { useRecorder } from '../contexts/RecorderContext';
 import { scheduleOnRN } from 'react-native-worklets';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -218,11 +218,7 @@ function RecorderContent() {
 }
 
 export function Recorder() {
-  return (
-    <RecorderProvider>
-      <RecorderContent />
-    </RecorderProvider>
-  );
+  return <RecorderContent />;
 }
 
 const styles = StyleSheet.create({

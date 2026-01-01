@@ -1,7 +1,8 @@
-import { View, Text, StyleSheet, FlatList } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import type { RecordedHaptic } from '../types/recording';
 import RecordingItem from './RecordingItem';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Link } from 'expo-router';
 
 interface RecordingsListProps {
   recordings: RecordedHaptic[];
@@ -45,7 +46,14 @@ export default function RecordingsList({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Recordings</Text>
+      <View style={styles.header}>
+        <Text style={styles.title}>Recordings</Text>
+        <Link href="/import-modal" asChild>
+          <TouchableOpacity style={styles.addButton}>
+            <Text style={styles.addButtonText}>+</Text>
+          </TouchableOpacity>
+        </Link>
+      </View>
       <FlatList
         data={recordings}
         keyExtractor={(item) => item.id}
@@ -71,11 +79,30 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
   title: {
     fontSize: 20,
     fontWeight: '700',
     color: '#FFFFFF',
-    marginBottom: 12,
+  },
+  addButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#007AFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addButtonText: {
+    fontSize: 24,
+    color: '#FFFFFF',
+    fontWeight: '600',
+    marginTop: -2,
   },
   emptyContainer: {
     flex: 1,

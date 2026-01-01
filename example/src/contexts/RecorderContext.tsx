@@ -53,6 +53,7 @@ interface RecorderContextValue {
   onUserScrollStart: () => void;
   onUserScrollEnd: () => void;
   deleteRecording: (id: string) => void;
+  importRecording: (recording: RecordedHaptic) => void;
 }
 
 const RecorderContext = createContext<RecorderContextValue | null>(null);
@@ -387,6 +388,10 @@ export function RecorderProvider({ children }: { children: ReactNode }) {
     setRecordings(recordings.filter((r) => r.id !== id));
   };
 
+  const importRecording = (recording: RecordedHaptic) => {
+    setRecordings([...recordings, recording]);
+  };
+
   return (
     <RecorderContext.Provider
       value={{
@@ -420,6 +425,7 @@ export function RecorderProvider({ children }: { children: ReactNode }) {
         onUserScrollStart,
         onUserScrollEnd,
         deleteRecording,
+        importRecording,
       }}
     >
       {children}
