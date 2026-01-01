@@ -18,6 +18,7 @@ import {
 } from '../utils/hapticPlayback';
 import { PIXELS_PER_SECOND } from '../components/RecordingTimeline';
 import { scheduleOnRN } from 'react-native-worklets';
+import { storage, STORAGE_KEYS } from '../utils/storage';
 
 type TimelineMode = 'recording' | 'playback' | 'idle';
 
@@ -57,7 +58,22 @@ interface RecorderContextValue {
 const RecorderContext = createContext<RecorderContextValue | null>(null);
 
 export function RecorderProvider({ children }: { children: ReactNode }) {
-  const [recordings, setRecordings] = useState<RecordedHaptic[]>([]);
+  const [recordings, _setRecordings] = useState<RecordedHaptic[]>(() => {
+    // Load recordings from MMKV on initial mount
+    try {
+      const stored = storage.getString(STORAGE_KEYS.RECORDINGS);
+      if (stored) {
+        return JSON.parse(stored) as RecordedHaptic[];
+      }
+    } catch (error) {
+      console.error('Failed to load recordings from storage:', error);
+    }
+    return [];
+  });
+  const setRecordings = (recordings: RecordedHaptic[]) => {
+    storage.set(STORAGE_KEYS.RECORDINGS, JSON.stringify(recordings));
+    _setRecordings(recordings);
+  };
   const [selectedRecordingId, setSelectedRecordingId] = useState<string | null>(
     null
   );
@@ -144,7 +160,7 @@ export function RecorderProvider({ children }: { children: ReactNode }) {
   };
 
   const addRecordingAndSelect = (recording: RecordedHaptic) => {
-    setRecordings((prev) => [...prev, recording]);
+    setRecordings([...recordings, recording]);
     setSelectedRecordingId(recording.id);
   };
 
@@ -368,7 +384,7 @@ export function RecorderProvider({ children }: { children: ReactNode }) {
     if (selectedRecordingId === id) {
       selectRecording(null);
     }
-    setRecordings((prev) => prev.filter((r) => r.id !== id));
+    setRecordings(recordings.filter((r) => r.id !== id));
   };
 
   return (
