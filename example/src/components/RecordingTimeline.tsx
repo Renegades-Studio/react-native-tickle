@@ -83,6 +83,7 @@ export default function RecordingTimeline({
   const scrollViewRef = useAnimatedRef<Animated.ScrollView>();
   const isDragging = useSharedValue(false);
   const isMomentumScrolling = useSharedValue(false);
+  const hittingMaxScroll = useSharedValue(false);
 
   const scrollHandler = useAnimatedScrollHandler({
     onBeginDrag: () => {
@@ -111,8 +112,12 @@ export default function RecordingTimeline({
       const rawX = event.contentOffset.x;
       const clampedX = Math.min(Math.max(0, rawX), maxScroll);
 
-      if (clampedX !== rawX) {
+      if (clampedX !== rawX && !hittingMaxScroll.get()) {
+        hittingMaxScroll.set(true);
         scrollTo(scrollViewRef, clampedX, 0, false);
+      }
+      if (clampedX === rawX) {
+        hittingMaxScroll.set(false);
       }
 
       scrollX.set(clampedX);
