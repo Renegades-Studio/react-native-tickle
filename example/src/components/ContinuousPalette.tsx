@@ -8,6 +8,7 @@ import Animated, {
   clamp,
 } from 'react-native-reanimated';
 import {
+  createContinuousPlayer,
   startContinuousPlayer,
   stopContinuousPlayer,
   updateContinuousPlayer,
@@ -44,6 +45,8 @@ const normalizeCoordinates = (x: number, y: number, size: number) => {
     y: y / size,
   };
 };
+
+createContinuousPlayer(INITIAL_INTENSITY, INITIAL_SHARPNESS);
 
 export default function ContinuousPalette({
   size,

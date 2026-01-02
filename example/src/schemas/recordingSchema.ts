@@ -6,13 +6,26 @@ const hapticEventParameterSchema = z.object({
   value: z.number().min(0).max(1),
 });
 
-// Schema for haptic events
-const hapticEventSchema = z.object({
-  type: z.enum(['transient', 'continuous']),
+// Schema for transient haptic event
+const transientHapticEventSchema = z.object({
+  type: z.literal('transient'),
   parameters: z.array(hapticEventParameterSchema),
   relativeTime: z.number().min(0),
-  duration: z.number().min(0).optional(),
 });
+
+// Schema for continuous haptic event
+const continuousHapticEventSchema = z.object({
+  type: z.literal('continuous'),
+  parameters: z.array(hapticEventParameterSchema),
+  relativeTime: z.number().min(0),
+  duration: z.number().min(0),
+});
+
+// Discriminated union for haptic events
+const hapticEventSchema = z.discriminatedUnion('type', [
+  transientHapticEventSchema,
+  continuousHapticEventSchema,
+]);
 
 // Schema for haptic curve control points
 const hapticCurveControlPointSchema = z.object({

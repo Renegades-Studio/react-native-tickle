@@ -9,6 +9,7 @@ import Animated, {
   type SharedValue,
 } from 'react-native-reanimated';
 import {
+  createContinuousPlayer,
   startContinuousPlayer,
   stopContinuousPlayer,
   updateContinuousPlayer,
@@ -17,6 +18,8 @@ import {
 const TOUCH_INDICATOR_SIZE = 30;
 const INITIAL_INTENSITY = 1.0;
 const INITIAL_SHARPNESS = 0.5;
+
+createContinuousPlayer(INITIAL_INTENSITY, INITIAL_SHARPNESS);
 
 interface MiniContinuousPaletteProps {
   size: number;

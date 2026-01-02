@@ -1,10 +1,10 @@
-import type { HapticEvent, HapticCurve } from 'react-native-ahaps';
+import type { HapticCurve, HapticEvent } from 'react-native-ahaps';
 
 export interface RecordedHaptic {
   id: string;
   name: string;
   createdAt: number;
-  duration: number; // in seconds
+  duration: number;
   events: HapticEvent[];
   curves: HapticCurve[];
 }
@@ -15,7 +15,7 @@ export interface RecordingEvent {
     | 'continuous_start'
     | 'continuous_update'
     | 'continuous_end';
-  timestamp: number; // relative to recording start in seconds
+  timestamp: number;
   intensity: number;
   sharpness: number;
 }
