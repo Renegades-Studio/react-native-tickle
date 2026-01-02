@@ -9,6 +9,7 @@ import Animated, {
   type SharedValue,
 } from 'react-native-reanimated';
 import { useContinuousPlayer } from 'react-native-ahaps';
+import { useTheme } from '../contexts/ThemeContext';
 
 const TOUCH_INDICATOR_SIZE = 30;
 const INITIAL_INTENSITY = 1.0;
@@ -52,6 +53,7 @@ export default function MiniContinuousPalette({
   onContinuousUpdate,
   onContinuousEnd,
 }: MiniContinuousPaletteProps) {
+  const { colors } = useTheme();
   const player = useContinuousPlayer(
     MINI_CONTINUOUS_PLAYER,
     INITIAL_INTENSITY,
@@ -179,20 +181,20 @@ export default function MiniContinuousPalette({
         <View
           style={[
             styles.palette,
-            { width: size, height: size, backgroundColor: '#3A3A3C' },
+            { width: size, height: size, backgroundColor: colors.padColor },
           ]}
         >
           <Animated.View
             style={[
               StyleSheet.absoluteFill,
-              { backgroundColor: '#48484A' },
+              { backgroundColor: colors.flashColor },
               bgStyle,
             ]}
           />
           <Animated.View
             style={[
               styles.touchIndicator,
-              { backgroundColor: '#FF3B30' },
+              { backgroundColor: colors.touchIndicator },
               touchStyle,
             ]}
           />

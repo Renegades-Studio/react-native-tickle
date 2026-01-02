@@ -8,6 +8,7 @@ import Animated, {
   type SharedValue,
 } from 'react-native-reanimated';
 import ReText from './ReText';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface RecordButtonProps {
   isRecording: SharedValue<boolean>;
@@ -18,6 +19,7 @@ export default function RecordButton({
   isRecording,
   onPress,
 }: RecordButtonProps) {
+  const { colors } = useTheme();
   const pressed = useSharedValue(false);
 
   const tap = Gesture.Tap()
@@ -32,7 +34,7 @@ export default function RecordButton({
     });
 
   const buttonStyle = useAnimatedStyle(() => ({
-    backgroundColor: isRecording.get() ? '#8E8E93' : '#FF3B30',
+    backgroundColor: isRecording.get() ? colors.secondaryText : colors.accent,
     opacity: pressed.get() ? 0.8 : 1,
     transform: [
       { scale: withTiming(pressed.get() ? 0.98 : 1, { duration: 100 }) },
@@ -41,6 +43,7 @@ export default function RecordButton({
 
   const iconStyle = useAnimatedStyle(() => ({
     borderRadius: isRecording.get() ? 2 : 10,
+    backgroundColor: '#FFFFFF',
   }));
 
   const buttonText = useDerivedValue<string>(() =>
@@ -76,11 +79,10 @@ const styles = StyleSheet.create({
   icon: {
     width: 20,
     height: 20,
-    backgroundColor: '#FFFFFF',
   },
   text: {
-    color: '#FFFFFF',
     fontSize: 18,
     fontWeight: '700',
+    color: '#FFFFFF',
   },
 });

@@ -7,6 +7,7 @@ import {
   TextInput,
 } from 'react-native';
 import type { RecordedHaptic } from '../types/recording';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface RecordingItemProps {
   recording: RecordedHaptic;
@@ -29,6 +30,8 @@ export default function RecordingItem({
   onDelete,
   onNameChange,
 }: RecordingItemProps) {
+  const { colors } = useTheme();
+
   const formatDuration = (millisecond: number) => {
     const mins = Math.floor(millisecond / 60000);
     const secs = Math.floor((millisecond % 60000) / 1000);
@@ -75,10 +78,20 @@ export default function RecordingItem({
       activeOpacity={0.8}
       disabled={isSelected}
     >
-      <View style={[styles.container, isSelected && styles.selectedContainer]}>
+      <View
+        style={[
+          styles.container,
+          { backgroundColor: colors.card, borderColor: colors.border },
+          isSelected && {
+            ...styles.selectedContainer,
+            borderColor: colors.borderActive,
+            backgroundColor: colors.cardSelected,
+          },
+        ]}
+      >
         <View style={styles.info}>
           <TextInput
-            style={styles.name}
+            style={[styles.name, { color: colors.text }]}
             editable={isSelected}
             pointerEvents={isSelected ? 'auto' : 'none'}
             defaultValue={recording.name}
@@ -86,19 +99,23 @@ export default function RecordingItem({
               onNameChange(recording.id, text);
             }}
             returnKeyType="done"
-            placeholderTextColor="#636366"
+            placeholderTextColor={colors.tertiaryText}
             maxLength={50}
           />
           <View style={styles.meta}>
-            <Text style={styles.metaText}>
+            <Text style={[styles.metaText, { color: colors.secondaryText }]}>
               {formatDuration(recording.duration)}
             </Text>
-            <Text style={styles.separator}>•</Text>
-            <Text style={styles.metaText}>
+            <Text style={[styles.separator, { color: colors.secondaryText }]}>
+              •
+            </Text>
+            <Text style={[styles.metaText, { color: colors.secondaryText }]}>
               {formatDate(recording.createdAt)}
             </Text>
-            <Text style={styles.separator}>•</Text>
-            <Text style={styles.metaText}>
+            <Text style={[styles.separator, { color: colors.secondaryText }]}>
+              •
+            </Text>
+            <Text style={[styles.metaText, { color: colors.secondaryText }]}>
               {recording.events.length} event
               {recording.events.length !== 1 ? 's' : ''}
             </Text>
@@ -108,7 +125,7 @@ export default function RecordingItem({
         {isSelected && (
           <View style={styles.actions}>
             <TouchableOpacity
-              style={[styles.button, styles.playButton]}
+              style={[styles.button, { backgroundColor: colors.blue }]}
               onPress={handlePlayPausePress}
             >
               {isPlaying ? (
@@ -122,14 +139,14 @@ export default function RecordingItem({
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.button, styles.exportButton]}
+              style={[styles.button, { backgroundColor: colors.green }]}
               onPress={handleExport}
             >
               <Text style={styles.buttonText}>↗</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.button, styles.deleteButton]}
+              style={[styles.button, { backgroundColor: colors.accent }]}
               onPress={() => onDelete(recording.id)}
             >
               <Text style={styles.buttonText}>✕</Text>
@@ -146,24 +163,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#1C1C1E',
     padding: 16,
     borderRadius: 12,
     marginBottom: 8,
     borderWidth: 2,
-    borderColor: 'transparent',
   },
-  selectedContainer: {
-    borderColor: '#007AFF',
-    backgroundColor: '#0A1A2E',
-  },
+  selectedContainer: {},
   info: {
     flex: 1,
   },
   name: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
     marginBottom: 4,
     paddingEnd: 16,
   },
@@ -174,11 +185,9 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: 12,
-    color: '#8E8E93',
   },
   separator: {
     fontSize: 12,
-    color: '#8E8E93',
   },
   actions: {
     flexDirection: 'row',
@@ -191,19 +200,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  playButton: {
-    backgroundColor: '#007AFF',
-  },
-  exportButton: {
-    backgroundColor: '#34C759',
-  },
-  deleteButton: {
-    backgroundColor: '#FF3B30',
-  },
   buttonText: {
-    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '700',
+    color: '#FFFFFF',
   },
   playIcon: {
     width: 0,

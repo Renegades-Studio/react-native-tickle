@@ -9,6 +9,7 @@ import Animated, {
   type SharedValue,
 } from 'react-native-reanimated';
 import { startHaptic } from 'react-native-ahaps';
+import { useTheme } from '../contexts/ThemeContext';
 
 const TOUCH_INDICATOR_SIZE = 30;
 
@@ -48,6 +49,7 @@ export default function MiniTransientPalette({
   resetTrigger,
   onHapticTrigger,
 }: MiniTransientPaletteProps) {
+  const { colors } = useTheme();
   const touchX = useSharedValue(size / 2);
   const touchY = useSharedValue(size / 2);
   const bgOpacity = useSharedValue(0);
@@ -132,20 +134,20 @@ export default function MiniTransientPalette({
         <View
           style={[
             styles.palette,
-            { width: size, height: size, backgroundColor: '#3A3A3C' },
+            { width: size, height: size, backgroundColor: colors.padColor },
           ]}
         >
           <Animated.View
             style={[
               StyleSheet.absoluteFill,
-              { backgroundColor: '#48484A' },
+              { backgroundColor: colors.flashColor },
               bgStyle,
             ]}
           />
           <Animated.View
             style={[
               styles.touchIndicator,
-              { backgroundColor: '#007AFF' },
+              { backgroundColor: colors.blue },
               touchStyle,
             ]}
           />

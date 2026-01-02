@@ -10,6 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { startHaptic } from 'react-native-ahaps';
 import type { RecordingEvent } from '../types/recording';
+import { useTheme } from '../contexts/ThemeContext';
 
 type TimelineMode = 'recording' | 'playback' | 'idle';
 
@@ -82,6 +83,7 @@ export default function RecordingTimeline({
   void _isRecording;
   void _currentTime;
 
+  const { colors } = useTheme();
   const scrollViewRef = useAnimatedRef<Animated.ScrollView>();
   const isDragging = useSharedValue(false);
   const isMomentumScrolling = useSharedValue(false);
@@ -278,11 +280,21 @@ export default function RecordingTimeline({
   const sharpnessLaneBottom = sharpnessLaneTop + sharpnessLaneHeight;
 
   return (
-    <View style={[styles.container, { height }]}>
+    <View
+      style={[
+        styles.container,
+        { height, backgroundColor: colors.timelineBackground },
+      ]}
+    >
       <Canvas style={styles.canvas}>
         <Group>
-          <GridLines height={height} scrollX={scrollX} />
-          <LaneSeparator y={height / 2} />
+          <GridLines
+            height={height}
+            scrollX={scrollX}
+            gridColor={colors.timelineGrid}
+            gridLightColor={colors.timelineGridLight}
+          />
+          <LaneSeparator y={height / 2} color={colors.timelineLaneSeparator} />
           <ContinuousLines
             segments={continuousSegments}
             scrollX={scrollX}
@@ -316,7 +328,14 @@ export default function RecordingTimeline({
       </Animated.ScrollView>
 
       <View
-        style={[styles.playhead, { height, left: PLAYHEAD_OFFSET - 1 }]}
+        style={[
+          styles.playhead,
+          {
+            height,
+            left: PLAYHEAD_OFFSET - 1,
+            backgroundColor: colors.playhead,
+          },
+        ]}
         pointerEvents="none"
       />
     </View>
@@ -326,9 +345,13 @@ export default function RecordingTimeline({
 function GridLines({
   height,
   scrollX,
+  gridColor,
+  gridLightColor,
 }: {
   height: number;
   scrollX: SharedValue<number>;
+  gridColor: string;
+  gridLightColor: string;
 }) {
   const fullHeightPath = useDerivedValue(() => {
     const p = Skia.Path.Make();
@@ -394,13 +417,13 @@ function GridLines({
     <Group>
       <Path
         path={fullHeightPath}
-        color="#2C2C2E"
+        color={gridColor}
         style="stroke"
         strokeWidth={1}
       />
       <Path
         path={smallTicksPath}
-        color="#3A3A3C"
+        color={gridLightColor}
         style="stroke"
         opacity={0.5}
         strokeWidth={1}
@@ -409,7 +432,7 @@ function GridLines({
   );
 }
 
-function LaneSeparator({ y }: { y: number }) {
+function LaneSeparator({ y, color }: { y: number; color: string }) {
   const path = useDerivedValue(() => {
     const p = Skia.Path.Make();
     p.moveTo(0, y);
@@ -417,7 +440,7 @@ function LaneSeparator({ y }: { y: number }) {
     return p;
   });
 
-  return <Path path={path} color="#3A3A3C" style="stroke" strokeWidth={1} />;
+  return <Path path={path} color={color} style="stroke" strokeWidth={1} />;
 }
 
 function ContinuousLines({
@@ -640,7 +663,6 @@ function TransientLines({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#1C1C1E',
     borderRadius: 12,
     overflow: 'hidden',
     marginHorizontal: 16,
@@ -653,7 +675,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     width: 2,
-    backgroundColor: '#FFFFFF',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.5,

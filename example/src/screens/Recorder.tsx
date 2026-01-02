@@ -8,6 +8,7 @@ import RecordButton from '../components/RecordButton';
 import RecordingsList from '../components/RecordingsList';
 import ReText from '../components/ReText';
 import { useRecorder } from '../contexts/RecorderContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { scheduleOnRN } from 'react-native-worklets';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -15,6 +16,7 @@ const PALETTE_SIZE = (SCREEN_WIDTH - 48) / 2;
 
 function RecorderContent() {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
   const {
     mode,
     isRecording,
@@ -145,12 +147,21 @@ function RecorderContent() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + 16 }]}>
-      <Text style={styles.title}>Haptic Recorder</Text>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: colors.background, paddingTop: insets.top + 16 },
+      ]}
+    >
+      <Text style={[styles.title, { color: colors.text }]}>
+        Haptic Recorder
+      </Text>
 
       <View style={styles.palettes}>
         <View style={styles.paletteWrapper}>
-          <Text style={styles.paletteLabel}>Continuous</Text>
+          <Text style={[styles.paletteLabel, { color: colors.secondaryText }]}>
+            Continuous
+          </Text>
           <MiniContinuousPalette
             size={PALETTE_SIZE}
             resetTrigger={paletteResetTrigger}
@@ -163,7 +174,9 @@ function RecorderContent() {
           />
         </View>
         <View style={styles.paletteWrapper}>
-          <Text style={styles.paletteLabel}>Transient</Text>
+          <Text style={[styles.paletteLabel, { color: colors.secondaryText }]}>
+            Transient
+          </Text>
           <MiniTransientPalette
             size={PALETTE_SIZE}
             resetTrigger={paletteResetTrigger}
@@ -187,7 +200,10 @@ function RecorderContent() {
         onUserScrollEnd={handleUserScrollEnd}
       />
 
-      <ReText text={durationText} style={styles.duration} />
+      <ReText
+        text={durationText}
+        style={[styles.duration, { color: colors.accent }]}
+      />
 
       <RecordButton isRecording={isRecording} onPress={handleRecordToggle} />
 
@@ -212,12 +228,10 @@ export function Recorder() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
   },
   title: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 16,
   },
@@ -235,12 +249,10 @@ const styles = StyleSheet.create({
   paletteLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#8E8E93',
   },
   duration: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FF3B30',
     textAlign: 'center',
     marginVertical: 8,
     height: 24,

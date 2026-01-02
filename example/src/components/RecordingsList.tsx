@@ -13,6 +13,7 @@ import { Link } from 'expo-router';
 import { KeyboardStickyView } from 'react-native-keyboard-controller';
 import { useState } from 'react';
 import { scheduleOnRN } from 'react-native-worklets';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface RecordingsListProps {
   recordings: RecordedHaptic[];
@@ -35,6 +36,7 @@ export default function RecordingsList({
   onDelete,
   onNameChange,
 }: RecordingsListProps) {
+  const { colors } = useTheme();
   const [playingId, setPlayingId] = useState<string | null>(null);
   const insets = useSafeAreaInsets();
 
@@ -60,15 +62,27 @@ export default function RecordingsList({
   if (recordings.length === 0) {
     return (
       <View style={styles.emptyContainer}>
-        <Text style={styles.emptyText}>No recordings yet</Text>
-        <Text style={styles.emptySubtext}>
+        <Text style={[styles.emptyText, { color: colors.secondaryText }]}>
+          No recordings yet
+        </Text>
+        <Text style={[styles.emptySubtext, { color: colors.tertiaryText }]}>
           Create a new haptic pattern or import an existing one
         </Text>
         <View style={styles.emptyButtonsContainer}>
           <Link href="/import-modal" asChild>
-            <TouchableOpacity style={styles.emptyButton}>
+            <TouchableOpacity
+              style={[
+                styles.emptyButton,
+                {
+                  backgroundColor: colors.card,
+                  borderColor: colors.timelineGrid,
+                },
+              ]}
+            >
               <Text style={styles.emptyButtonIcon}>📁</Text>
-              <Text style={styles.emptyButtonText}>Import</Text>
+              <Text style={[styles.emptyButtonText, { color: colors.text }]}>
+                Import
+              </Text>
             </TouchableOpacity>
           </Link>
         </View>
@@ -77,12 +91,18 @@ export default function RecordingsList({
   }
 
   return (
-    <KeyboardStickyView style={styles.container}>
+    <KeyboardStickyView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <View style={styles.header}>
-        <Text style={styles.title}>Recordings</Text>
+        <Text style={[styles.title, { color: colors.text }]}>Recordings</Text>
         <Link href="/import-modal" asChild>
-          <TouchableOpacity style={styles.addButton}>
-            <Text style={styles.addButtonText}>+</Text>
+          <TouchableOpacity
+            style={[styles.addButton, { backgroundColor: colors.blue }]}
+          >
+            <Text style={[styles.addButtonText, { color: colors.text }]}>
+              +
+            </Text>
           </TouchableOpacity>
         </Link>
       </View>
@@ -116,7 +136,6 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     borderRadius: 30,
     overflow: 'hidden',
-    backgroundColor: '#000',
   },
   header: {
     flexDirection: 'row',
@@ -127,19 +146,16 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#FFFFFF',
   },
   addButton: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#007AFF',
     alignItems: 'center',
     justifyContent: 'center',
   },
   addButtonText: {
     fontSize: 24,
-    color: '#FFFFFF',
     fontWeight: '600',
     marginTop: -2,
   },
@@ -152,12 +168,10 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#8E8E93',
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#636366',
     textAlign: 'center',
     marginBottom: 32,
   },
@@ -166,7 +180,6 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   emptyButton: {
-    backgroundColor: '#1C1C1E',
     paddingHorizontal: 24,
     paddingVertical: 16,
     borderRadius: 16,
@@ -174,7 +187,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     minWidth: 120,
     borderWidth: 1,
-    borderColor: '#2C2C2E',
   },
   emptyButtonIcon: {
     fontSize: 32,
@@ -183,6 +195,5 @@ const styles = StyleSheet.create({
   emptyButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#FFFFFF',
   },
 });

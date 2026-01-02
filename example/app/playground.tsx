@@ -1,5 +1,5 @@
 import { Playground } from '../src/screens/Playground';
 
-export default function PlaygroundScreen() {
+export default function PlaygroundRoute() {
   return <Playground />;
 }
