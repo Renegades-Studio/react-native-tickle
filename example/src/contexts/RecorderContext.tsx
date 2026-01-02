@@ -6,12 +6,12 @@ import {
   type FrameCallback,
 } from 'react-native-reanimated';
 import type { RecordedHaptic, RecordingEvent } from '../types/recording';
-import type { HapticEvent, HapticCurve } from 'react-native-ahap';
+import type { HapticEvent, HapticCurve } from 'react-native-ahaps';
 import {
   startHaptic,
   stopAllHaptics,
   stopContinuousPlayer,
-} from 'react-native-ahap';
+} from 'react-native-ahaps';
 import {
   trimHapticDataFromSeekTime,
   hapticEventsToRecordingEvents,
@@ -394,9 +394,7 @@ export function RecorderProvider({ children }: { children: ReactNode }) {
   };
 
   const renameRecording = (id: string, name: string) => {
-    setRecordings(
-      recordings.map((r) => (r.id === id ? { ...r, name } : r))
-    );
+    setRecordings(recordings.map((r) => (r.id === id ? { ...r, name } : r)));
   };
 
   return (

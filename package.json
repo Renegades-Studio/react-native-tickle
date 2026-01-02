@@ -1,7 +1,7 @@
 {
-  "name": "react-native-ahap",
+  "name": "react-native-ahaps",
   "version": "0.1.0",
-  "description": "ahap",
+  "description": "Build and fine-tune haptic patterns with real-time previews",
   "main": "./lib/module/index.js",
   "types": "./lib/typescript/src/index.d.ts",
   "exports": {
@@ -34,7 +34,6 @@
     "!**/.*"
   ],
   "scripts": {
-    "example": "yarn workspace react-native-ahap-example",
     "postinstall": "bash scripts/postinstall.sh",
     "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
     "prepare": "bob build",
@@ -51,7 +50,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/renegades-xyz/react-native-ahap.git"
+    "url": "git+https://github.com/Renegades-Studio/react-native-ahaps.git"
   },
   "author": "Renegades <info@renegades.xyz> (https://renegades.xyz)",
   "license": "MIT",

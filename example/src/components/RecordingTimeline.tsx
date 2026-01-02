@@ -8,7 +8,7 @@ import Animated, {
   useSharedValue,
   type SharedValue,
 } from 'react-native-reanimated';
-import { startHaptic } from 'react-native-ahap';
+import { startHaptic } from 'react-native-ahaps';
 import type { RecordingEvent } from '../types/recording';
 
 type TimelineMode = 'recording' | 'playback' | 'idle';

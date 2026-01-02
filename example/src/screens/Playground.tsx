@@ -1,6 +1,5 @@
 import { View, StyleSheet, Dimensions, useColorScheme } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useHapticEngine } from 'react-native-ahap';
 import TransientPalette from '../components/TransientPalette';
 import ContinuousPalette from '../components/ContinuousPalette';
 
@@ -13,8 +12,6 @@ const totalHeight = SCREEN_HEIGHT - 80 - 4 * LABEL_HEIGHT - 2 * MARGIN;
 const PALETTE_SIZE = Math.min(totalWidth, totalHeight / 2);
 
 export const Playground = () => {
-  useHapticEngine();
-
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';

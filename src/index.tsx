@@ -68,22 +68,13 @@ export function stopContinuousPlayer(): void {
   return boxedAhap.unbox().stopContinuousPlayer();
 }
 
-export function useHapticEngine(options?: {
-  initialIntensity?: number;
-  initialSharpness?: number;
-}) {
-  const { initialIntensity = 1.0, initialSharpness = 0.5 } = options ?? {};
-
+export function useHapticEngine() {
   useEffect(() => {
-    // Initialize engine for both iOS and Android
     initializeEngine();
-    // Create the continuous player with initial parameters
-    createContinuousPlayer(initialIntensity, initialSharpness);
 
     const off = AppState.addEventListener('change', (state) => {
       if (state === 'active') {
         initializeEngine();
-        createContinuousPlayer(initialIntensity, initialSharpness);
       } else if (state === 'background') {
         destroyEngine();
       }
@@ -92,7 +83,13 @@ export function useHapticEngine(options?: {
     return () => {
       off.remove();
     };
-  }, [initialIntensity, initialSharpness]);
+  }, []);
+}
+
+export function HapticProvider({ children }: { children: React.ReactNode }) {
+  useHapticEngine();
+
+  return <>{children}</>;
 }
 
 export { AhapHybridObject };

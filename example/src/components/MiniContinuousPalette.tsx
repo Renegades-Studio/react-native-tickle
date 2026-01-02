@@ -12,7 +12,7 @@ import {
   startContinuousPlayer,
   stopContinuousPlayer,
   updateContinuousPlayer,
-} from 'react-native-ahap';
+} from 'react-native-ahaps';
 
 const TOUCH_INDICATOR_SIZE = 30;
 const INITIAL_INTENSITY = 1.0;

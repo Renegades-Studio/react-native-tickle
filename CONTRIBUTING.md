@@ -40,9 +40,9 @@ The [example app](/example/) demonstrates usage of the library. You need to run 
 
 It is configured to use the local version of the library, so any changes you make to the library's source code will be reflected in the example app. Changes to the library's JavaScript code will be reflected in the example app without a rebuild, but native code changes will require a rebuild of the example app.
 
-If you want to use Android Studio or Xcode to edit the native code, you can open the `example/android` or `example/ios` directories respectively in those editors. To edit the Objective-C or Swift files, open `example/ios/AhapExample.xcworkspace` in Xcode and find the source files at `Pods > Development Pods > react-native-ahap`.
+If you want to use Android Studio or Xcode to edit the native code, you can open the `example/android` or `example/ios` directories respectively in those editors. To edit the Objective-C or Swift files, open `example/ios/HaptixStudio.xcworkspace` in Xcode and find the source files at `Pods > Development Pods > react-native-ahaps`.
 
-To edit the Java or Kotlin files, open `example/android` in Android studio and find the source files at `react-native-ahap` under `Android`.
+To edit the Java or Kotlin files, open `example/android` in Android studio and find the source files at `react-native-ahaps` under `Android`.
 
 You can use various commands from the root directory to work with the project.
 
@@ -67,7 +67,7 @@ yarn example ios
 To confirm that the app is running with the new architecture, you can check the Metro logs for a message like this:
 
 ```sh
-Running "AhapExample" with {"fabric":true,"initialProps":{"concurrentRoot":true},"rootTag":1}
+Running "Haptix Studio" with {"fabric":true,"initialProps":{"concurrentRoot":true},"rootTag":1}
 ```
 
 Note the `"fabric":true` and `"concurrentRoot":true` properties.
@@ -96,7 +96,6 @@ Remember to add tests for your change if possible. Run the unit tests by:
 yarn test
 ```
 
-
 ### Commit message convention
 
 We follow the [conventional commits specification](https://www.conventionalcommits.org/en) for our commit messages:
@@ -110,7 +109,6 @@ We follow the [conventional commits specification](https://www.conventionalcommi
 
 Our pre-commit hooks verify that your commit message matches this format when committing.
 
-
 ### Publishing to npm
 
 We use [release-it](https://github.com/release-it/release-it) to make it easier to publish new versions. It handles common tasks like bumping version based on semver, creating tags and releases etc.
@@ -120,7 +118,6 @@ To publish new versions, run the following:
 ```sh
 yarn release
 ```
-
 
 ### Scripts
 

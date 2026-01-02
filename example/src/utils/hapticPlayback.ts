@@ -1,4 +1,4 @@
-import type { HapticEvent, HapticCurve } from 'react-native-ahap';
+import type { HapticEvent, HapticCurve } from 'react-native-ahaps';
 
 function getCurveEndTime(curve: HapticCurve): number {
   'worklet';
@@ -27,7 +27,11 @@ export function hapticEventsToRecordingEvents(
   events: HapticEvent[],
   curves?: HapticCurve[]
 ): Array<{
-  type: 'transient' | 'continuous_start' | 'continuous_update' | 'continuous_end';
+  type:
+    | 'transient'
+    | 'continuous_start'
+    | 'continuous_update'
+    | 'continuous_end';
   timestamp: number;
   intensity: number;
   sharpness: number;
@@ -35,7 +39,11 @@ export function hapticEventsToRecordingEvents(
   'worklet';
 
   const result: Array<{
-    type: 'transient' | 'continuous_start' | 'continuous_update' | 'continuous_end';
+    type:
+      | 'transient'
+      | 'continuous_start'
+      | 'continuous_update'
+      | 'continuous_end';
     timestamp: number;
     intensity: number;
     sharpness: number;
@@ -67,10 +75,14 @@ export function hapticEventsToRecordingEvents(
 
       if (curves) {
         const intensityCurve = curves.find(
-          (c) => c.type === 'intensity' && Math.abs(c.relativeTime - eventStart) < 0.001
+          (c) =>
+            c.type === 'intensity' &&
+            Math.abs(c.relativeTime - eventStart) < 0.001
         );
         const sharpnessCurve = curves.find(
-          (c) => c.type === 'sharpness' && Math.abs(c.relativeTime - eventStart) < 0.001
+          (c) =>
+            c.type === 'sharpness' &&
+            Math.abs(c.relativeTime - eventStart) < 0.001
         );
 
         const intensityPoints = intensityCurve?.controlPoints ?? [];
@@ -111,7 +123,9 @@ export function hapticEventsToRecordingEvents(
                 }
               }
               if (prev && next && next.relativeTime !== prev.relativeTime) {
-                const ratio = (t - prev.relativeTime) / (next.relativeTime - prev.relativeTime);
+                const ratio =
+                  (t - prev.relativeTime) /
+                  (next.relativeTime - prev.relativeTime);
                 intensityValue = prev.value + ratio * (next.value - prev.value);
               }
             }
@@ -137,7 +151,9 @@ export function hapticEventsToRecordingEvents(
                 }
               }
               if (prev && next && next.relativeTime !== prev.relativeTime) {
-                const ratio = (t - prev.relativeTime) / (next.relativeTime - prev.relativeTime);
+                const ratio =
+                  (t - prev.relativeTime) /
+                  (next.relativeTime - prev.relativeTime);
                 sharpnessValue = prev.value + ratio * (next.value - prev.value);
               }
             }

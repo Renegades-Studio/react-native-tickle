@@ -2,7 +2,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "react-native-ahap": ["../src/index.tsx"]
+      "react-native-ahaps": ["../src/index.tsx"]
     },
     "verbatimModuleSyntax": true,
     "noUnusedLocals": true,

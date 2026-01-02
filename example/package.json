@@ -1,5 +1,5 @@
 {
-  "name": "react-native-ahap-example",
+  "name": "haptix-studio",
   "main": "expo-router/entry",
   "version": "0.0.1",
   "private": true,
@@ -22,7 +22,7 @@
     "expo-system-ui": "~6.0.9",
     "react": "19.1.0",
     "react-native": "0.81.5",
-    "react-native-ahap": "*",
+    "react-native-ahaps": "link:..",
     "react-native-gesture-handler": "^2.30.0",
     "react-native-keyboard-controller": "1.18.5",
     "react-native-mmkv": "^4.1.0",

@@ -8,7 +8,7 @@ import Animated, {
   withSequence,
   type SharedValue,
 } from 'react-native-reanimated';
-import { startHaptic } from 'react-native-ahap';
+import { startHaptic } from 'react-native-ahaps';
 
 const TOUCH_INDICATOR_SIZE = 30;
 

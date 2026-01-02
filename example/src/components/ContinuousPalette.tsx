@@ -11,7 +11,7 @@ import {
   startContinuousPlayer,
   stopContinuousPlayer,
   updateContinuousPlayer,
-} from 'react-native-ahap';
+} from 'react-native-ahaps';
 import Header from './Header';
 import Footer from './Footer';
 

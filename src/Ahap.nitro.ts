@@ -12,12 +12,18 @@ export type HapticCurveControlPoint = {
   value: number;
 };
 
-export type HapticEvent = {
-  type: HapticEventType;
-  parameters: HapticEventParameter[];
-  relativeTime: number;
-  duration?: number; // Optional for transient events
-};
+export type HapticEvent =
+  | {
+      type: 'transient';
+      parameters: HapticEventParameter[];
+      relativeTime: number;
+    }
+  | {
+      type: 'continuous';
+      parameters: HapticEventParameter[];
+      relativeTime: number;
+      duration: number;
+    };
 
 export type HapticCurve = {
   type: HapticCurveType;

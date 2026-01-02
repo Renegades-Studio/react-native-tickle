@@ -1,4 +1,4 @@
-import type { HapticEvent, HapticCurve } from 'react-native-ahap';
+import type { HapticEvent, HapticCurve } from 'react-native-ahaps';
 
 export interface RecordedHaptic {
   id: string;
@@ -10,7 +10,11 @@ export interface RecordedHaptic {
 }
 
 export interface RecordingEvent {
-  type: 'transient' | 'continuous_start' | 'continuous_update' | 'continuous_end';
+  type:
+    | 'transient'
+    | 'continuous_start'
+    | 'continuous_update'
+    | 'continuous_end';
   timestamp: number; // relative to recording start in seconds
   intensity: number;
   sharpness: number;
