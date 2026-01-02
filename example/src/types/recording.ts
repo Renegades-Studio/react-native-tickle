@@ -7,6 +7,7 @@ export interface RecordedHaptic {
   duration: number;
   events: HapticEvent[];
   curves: HapticCurve[];
+  recordingEvents: RecordingEvent[];
 }
 
 export interface RecordingEvent {

@@ -7,14 +7,8 @@ import {
 } from 'react-native-reanimated';
 import type { RecordedHaptic, RecordingEvent } from '../types/recording';
 import type { HapticEvent, HapticCurve } from 'react-native-ahaps';
-import {
-  startHaptic,
-  stopAllHaptics,
-} from 'react-native-ahaps';
-import {
-  trimHapticDataFromSeekTime,
-  hapticEventsToRecordingEvents,
-} from '../utils/hapticPlayback';
+import { startHaptic, stopAllHaptics } from 'react-native-ahaps';
+import { trimHapticDataFromSeekTime } from '../utils/hapticPlayback';
 import { PIXELS_PER_MILLISECOND } from '../components/RecordingTimeline';
 import { scheduleOnRN } from 'react-native-worklets';
 import { storage, STORAGE_KEYS } from '../utils/storage';
@@ -60,7 +54,6 @@ const RecorderContext = createContext<RecorderContextValue | null>(null);
 
 export function RecorderProvider({ children }: { children: ReactNode }) {
   const [recordings, _setRecordings] = useState<RecordedHaptic[]>(() => {
-    // Load recordings from MMKV on initial mount
     try {
       const stored = storage.getString(STORAGE_KEYS.RECORDINGS);
       if (stored) {
@@ -172,9 +165,6 @@ export function RecorderProvider({ children }: { children: ReactNode }) {
 
     isRecording.set(false);
 
-    // Note: The continuous player is managed by MiniContinuousPalette
-    // and will be stopped automatically when the gesture ends
-
     let events = recordingEvents.get();
 
     if (wasContinuousActive) {
@@ -204,14 +194,13 @@ export function RecorderProvider({ children }: { children: ReactNode }) {
       duration,
       events: hapticEvents,
       curves: hapticCurves,
+      recordingEvents: events,
     };
 
     scheduleOnRN(addRecordingAndSelect, newRecording);
 
     mode.set('playback');
-    playbackEvents.set(
-      hapticEventsToRecordingEvents(hapticEvents, hapticCurves)
-    );
+    playbackEvents.set(events);
     playbackTotalDuration.set(duration);
     playbackTime.set(0);
     playbackStartTime.set(0);
@@ -293,9 +282,7 @@ export function RecorderProvider({ children }: { children: ReactNode }) {
       const recording = recordings.find((r) => r.id === id);
       if (recording) {
         mode.set('playback');
-        playbackEvents.set(
-          hapticEventsToRecordingEvents(recording.events, recording.curves)
-        );
+        playbackEvents.set(recording.recordingEvents);
         playbackTotalDuration.set(recording.duration);
         playbackTime.set(0);
         playbackStartTime.set(0);

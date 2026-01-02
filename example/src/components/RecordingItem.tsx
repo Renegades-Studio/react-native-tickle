@@ -53,7 +53,12 @@ export default function RecordingItem({
 
   const handleExport = async () => {
     try {
-      const jsonData = JSON.stringify(recording, null, 2);
+      // Only export the essential haptic data
+      const exportData = {
+        events: recording.events,
+        curves: recording.curves,
+      };
+      const jsonData = JSON.stringify(exportData, null, 2);
 
       await Share.share({
         message: jsonData,

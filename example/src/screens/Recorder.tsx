@@ -1,7 +1,6 @@
 import { View, StyleSheet, Text, Dimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDerivedValue } from 'react-native-reanimated';
-import { useState, useEffect } from 'react';
 import MiniTransientPalette from '../components/MiniTransientPalette';
 import MiniContinuousPalette from '../components/MiniContinuousPalette';
 import RecordingTimeline from '../components/RecordingTimeline';
@@ -49,19 +48,6 @@ function RecorderContent() {
     deleteRecording,
     renameRecording,
   } = useRecorder();
-
-  const [playingId, setPlayingId] = useState<string | null>(null);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (isPlaying.get() && selectedRecordingId) {
-        setPlayingId(selectedRecordingId);
-      } else {
-        setPlayingId(null);
-      }
-    }, 50);
-    return () => clearInterval(interval);
-  }, [isPlaying, selectedRecordingId]);
 
   const currentTime = useDerivedValue(() => {
     const m = mode.get();
@@ -208,7 +194,7 @@ function RecorderContent() {
       <RecordingsList
         recordings={recordings}
         selectedId={selectedRecordingId}
-        playingId={playingId}
+        isPlaying={isPlaying}
         onSelect={selectRecording}
         onPlay={handlePlayRecording}
         onPause={handlePauseRecording}

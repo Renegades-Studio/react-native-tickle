@@ -5,16 +5,19 @@ import {
   FlatList,
   TouchableOpacity,
 } from 'react-native';
+import { useAnimatedReaction, type SharedValue } from 'react-native-reanimated';
 import type { RecordedHaptic } from '../types/recording';
 import RecordingItem from './RecordingItem';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Link } from 'expo-router';
 import { KeyboardStickyView } from 'react-native-keyboard-controller';
+import { useState } from 'react';
+import { scheduleOnRN } from 'react-native-worklets';
 
 interface RecordingsListProps {
   recordings: RecordedHaptic[];
   selectedId: string | null;
-  playingId: string | null;
+  isPlaying: SharedValue<boolean>;
   onSelect: (id: string | null) => void;
   onPlay: (id: string) => void;
   onPause: (id: string) => void;
@@ -25,14 +28,26 @@ interface RecordingsListProps {
 export default function RecordingsList({
   recordings,
   selectedId,
-  playingId,
+  isPlaying,
   onSelect,
   onPlay,
   onPause,
   onDelete,
   onNameChange,
 }: RecordingsListProps) {
+  const [playingId, setPlayingId] = useState<string | null>(null);
   const insets = useSafeAreaInsets();
+
+  useAnimatedReaction(
+    () => isPlaying.get(),
+    (isPlaying) => {
+      if (isPlaying && selectedId) {
+        scheduleOnRN(setPlayingId, selectedId);
+      } else {
+        scheduleOnRN(setPlayingId, null);
+      }
+    }
+  );
 
   const handleSelect = (id: string) => {
     if (selectedId === id) {

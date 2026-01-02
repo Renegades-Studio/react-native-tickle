@@ -14,6 +14,18 @@ import { useRecorder } from '../src/contexts/RecorderContext';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { recordedHapticSchema } from '../src/schemas/recordingSchema';
 import { ZodError } from 'zod';
+import { hapticEventsToRecordingEvents } from '../src/utils/hapticPlayback';
+import type { HapticEvent } from 'react-native-ahaps';
+
+const getDuration = (events: HapticEvent[]) => {
+  return events.reduce((maxTime, event) => {
+    const eventEnd =
+      event.type === 'continuous'
+        ? event.relativeTime + event.duration
+        : event.relativeTime;
+    return Math.max(maxTime, eventEnd);
+  }, 0);
+};
 
 export default function ImportModal() {
   const insets = useSafeAreaInsets();
@@ -48,12 +60,20 @@ export default function ImportModal() {
         return;
       }
 
-      // Create the recording object with the new title
+      const { events, curves } = validationResult.data;
+
+      const duration = getDuration(events);
+
+      const recordingEvents = hapticEventsToRecordingEvents(events, curves);
+
       const recording: RecordedHaptic = {
-        ...validationResult.data,
+        id: Date.now().toString(),
         name: title,
-        id: Date.now().toString(), // Generate new ID
-        createdAt: Date.now(), // Update timestamp
+        createdAt: Date.now(),
+        duration,
+        events,
+        curves,
+        recordingEvents,
       };
 
       // Import the recording
