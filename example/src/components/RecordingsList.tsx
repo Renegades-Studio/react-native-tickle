@@ -62,8 +62,16 @@ export default function RecordingsList({
       <View style={styles.emptyContainer}>
         <Text style={styles.emptyText}>No recordings yet</Text>
         <Text style={styles.emptySubtext}>
-          Tap RECORD to create your first haptic pattern
+          Create a new haptic pattern or import an existing one
         </Text>
+        <View style={styles.emptyButtonsContainer}>
+          <Link href="/import-modal" asChild>
+            <TouchableOpacity style={styles.emptyButton}>
+              <Text style={styles.emptyButtonIcon}>📁</Text>
+              <Text style={styles.emptyButtonText}>Import</Text>
+            </TouchableOpacity>
+          </Link>
+        </View>
       </View>
     );
   }
@@ -151,5 +159,30 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#636366',
     textAlign: 'center',
+    marginBottom: 32,
+  },
+  emptyButtonsContainer: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  emptyButton: {
+    backgroundColor: '#1C1C1E',
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 120,
+    borderWidth: 1,
+    borderColor: '#2C2C2E',
+  },
+  emptyButtonIcon: {
+    fontSize: 32,
+    marginBottom: 8,
+  },
+  emptyButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });

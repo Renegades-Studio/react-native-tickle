@@ -96,7 +96,10 @@ export default function ImportModal() {
   const isPresented = router.canGoBack();
 
   return (
-    <KeyboardAwareScrollView style={styles.container}>
+    <KeyboardAwareScrollView
+      style={styles.container}
+      keyboardShouldPersistTaps="handled"
+    >
       <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
         <Text style={styles.headerTitle}>Import Recording</Text>
         {isPresented && (
@@ -115,6 +118,7 @@ export default function ImportModal() {
           <TextInput
             style={styles.titleInput}
             value={title}
+            autoFocus
             onChangeText={setTitle}
             placeholder="Enter recording name"
             placeholderTextColor="#636366"

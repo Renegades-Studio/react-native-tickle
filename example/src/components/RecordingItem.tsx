@@ -29,9 +29,9 @@ export default function RecordingItem({
   onDelete,
   onNameChange,
 }: RecordingItemProps) {
-  const formatDuration = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
+  const formatDuration = (millisecond: number) => {
+    const mins = Math.floor(millisecond / 60000);
+    const secs = Math.floor((millisecond % 60000) / 1000);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
