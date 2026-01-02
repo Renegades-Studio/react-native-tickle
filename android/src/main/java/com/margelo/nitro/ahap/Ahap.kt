@@ -23,19 +23,23 @@ class Ahap : HybridAhapSpec() {
     // TODO: Android haptics implementation not yet supported
   }
 
-  override fun createContinuousPlayer(initialIntensity: Double, initialSharpness: Double) {
+  override fun createContinuousPlayer(playerId: String, initialIntensity: Double, initialSharpness: Double) {
     // TODO: Android haptics implementation not yet supported
   }
 
-  override fun startContinuousPlayer() {
+  override fun startContinuousPlayer(playerId: String) {
     // TODO: Android haptics implementation not yet supported
   }
 
-  override fun updateContinuousPlayer(intensityControl: Double, sharpnessControl: Double) {
+  override fun updateContinuousPlayer(playerId: String, intensityControl: Double, sharpnessControl: Double) {
     // TODO: Android haptics implementation not yet supported
   }
 
-  override fun stopContinuousPlayer() {
+  override fun stopContinuousPlayer(playerId: String) {
+    // TODO: Android haptics implementation not yet supported
+  }
+  
+  override fun destroyContinuousPlayer(playerId: String) {
     // TODO: Android haptics implementation not yet supported
   }
 }

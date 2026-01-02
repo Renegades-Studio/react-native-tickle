@@ -21,25 +21,29 @@ class Ahap: HybridAhapSpec {
   }
 
   func destroyEngine() throws {
-    haptics.clearHapticPlayers()
+    haptics.destroyEngine()
   }
 
   // MARK: - Continuous Player Methods
 
-  func createContinuousPlayer(initialIntensity: Double, initialSharpness: Double) throws {
-    haptics.createContinuousPlayer(initialIntensity: Float(initialIntensity), initialSharpness: Float(initialSharpness))
+  func createContinuousPlayer(playerId: String, initialIntensity: Double, initialSharpness: Double) throws {
+    haptics.createContinuousPlayer(playerId: playerId, initialIntensity: Float(initialIntensity), initialSharpness: Float(initialSharpness))
   }
 
-  func startContinuousPlayer() throws {
-    haptics.startContinuousPlayer()
+  func startContinuousPlayer(playerId: String) throws {
+    haptics.startContinuousPlayer(playerId: playerId)
   }
 
-  func updateContinuousPlayer(intensityControl: Double, sharpnessControl: Double) throws {
-    haptics.updateContinuousPlayer(intensityControl: Float(intensityControl), sharpnessControl: Float(sharpnessControl))
+  func updateContinuousPlayer(playerId: String, intensityControl: Double, sharpnessControl: Double) throws {
+    haptics.updateContinuousPlayer(playerId: playerId, intensityControl: Float(intensityControl), sharpnessControl: Float(sharpnessControl))
   }
 
-  func stopContinuousPlayer() throws {
-    haptics.stopContinuousPlayer()
+  func stopContinuousPlayer(playerId: String) throws {
+    haptics.stopContinuousPlayer(playerId: playerId)
+  }
+  
+  func destroyContinuousPlayer(playerId: String) throws {
+    haptics.destroyContinuousPlayer(playerId: playerId)
   }
 
   

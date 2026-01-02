@@ -32,15 +32,17 @@ export interface Ahap
   initializeEngine(): void;
   destroyEngine(): void;
 
-  // Continuous player methods for smooth haptic feedback
   createContinuousPlayer(
+    playerId: string,
     initialIntensity: number,
     initialSharpness: number
   ): void;
-  startContinuousPlayer(): void;
+  startContinuousPlayer(playerId: string): void;
   updateContinuousPlayer(
+    playerId: string,
     intensityControl: number,
     sharpnessControl: number
   ): void;
-  stopContinuousPlayer(): void;
+  stopContinuousPlayer(playerId: string): void;
+  destroyContinuousPlayer(playerId: string): void;
 }

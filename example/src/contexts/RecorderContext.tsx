@@ -10,7 +10,6 @@ import type { HapticEvent, HapticCurve } from 'react-native-ahaps';
 import {
   startHaptic,
   stopAllHaptics,
-  stopContinuousPlayer,
 } from 'react-native-ahaps';
 import {
   trimHapticDataFromSeekTime,
@@ -173,9 +172,8 @@ export function RecorderProvider({ children }: { children: ReactNode }) {
 
     isRecording.set(false);
 
-    if (wasContinuousActive) {
-      stopContinuousPlayer();
-    }
+    // Note: The continuous player is managed by MiniContinuousPalette
+    // and will be stopped automatically when the gesture ends
 
     let events = recordingEvents.get();
 

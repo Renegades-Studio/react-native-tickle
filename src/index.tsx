@@ -54,8 +54,8 @@ export function destroyEngine(): void {
   return boxedAhap.unbox().destroyEngine();
 }
 
-// Continuous player methods for smooth haptic feedback
 export function createContinuousPlayer(
+  playerId: string,
   initialIntensity: number,
   initialSharpness: number
 ): void {
@@ -63,16 +63,17 @@ export function createContinuousPlayer(
 
   return boxedAhap
     .unbox()
-    .createContinuousPlayer(initialIntensity, initialSharpness);
+    .createContinuousPlayer(playerId, initialIntensity, initialSharpness);
 }
 
-export function startContinuousPlayer(): void {
+export function startContinuousPlayer(playerId: string): void {
   'worklet';
 
-  return boxedAhap.unbox().startContinuousPlayer();
+  return boxedAhap.unbox().startContinuousPlayer(playerId);
 }
 
 export function updateContinuousPlayer(
+  playerId: string,
   intensityControl: number,
   sharpnessControl: number
 ): void {
@@ -80,12 +81,80 @@ export function updateContinuousPlayer(
 
   return boxedAhap
     .unbox()
-    .updateContinuousPlayer(intensityControl, sharpnessControl);
+    .updateContinuousPlayer(playerId, intensityControl, sharpnessControl);
 }
 
-export function stopContinuousPlayer(): void {
+export function stopContinuousPlayer(playerId: string): void {
   'worklet';
-  return boxedAhap.unbox().stopContinuousPlayer();
+  return boxedAhap.unbox().stopContinuousPlayer(playerId);
+}
+
+export function destroyContinuousPlayer(playerId: string): void {
+  'worklet';
+  return boxedAhap.unbox().destroyContinuousPlayer(playerId);
+}
+
+/**
+ * Hook to manage a continuous haptic player lifecycle.
+ *
+ * @param playerId - A unique string key to identify this player (e.g., 'my-palette')
+ * @param initialIntensity - Initial intensity value (0.0 to 1.0)
+ * @param initialSharpness - Initial sharpness value (0.0 to 1.0)
+ *
+ * @returns Object with JS-bound methods for convenience:
+ * - `start()` - Start the continuous haptic
+ * - `stop()` - Stop the continuous haptic
+ * - `update(intensity, sharpness)` - Update haptic parameters
+ * - `playerId` - The player key (for use in worklets)
+ *
+ * @example
+ * ```tsx
+ * const PLAYER_KEY = 'my-palette';
+ *
+ * function MyComponent() {
+ *   const { start, stop, update } = useContinuousPlayer(PLAYER_KEY, 1.0, 0.5);
+ *
+ *   const gesture = Gesture.Pan()
+ *     .onBegin(() => {
+ *       start();
+ *     })
+ *     .onUpdate(() => {
+ *       update(0.5, 0.5);
+ *     })
+ *     .onEnd(() => {
+ *       stop();
+ *     });
+ * }
+ * ```
+ */
+export function useContinuousPlayer(
+  playerId: string,
+  initialIntensity: number = 1.0,
+  initialSharpness: number = 0.5
+) {
+  useEffect(() => {
+    createContinuousPlayer(playerId, initialIntensity, initialSharpness);
+
+    return () => {
+      destroyContinuousPlayer(playerId);
+    };
+  }, [playerId, initialIntensity, initialSharpness]);
+
+  return {
+    start: () => {
+      'worklet';
+      startContinuousPlayer(playerId);
+    },
+    stop: () => {
+      'worklet';
+      stopContinuousPlayer(playerId);
+    },
+    update: (intensity: number, sharpness: number) => {
+      'worklet';
+      return updateContinuousPlayer(playerId, intensity, sharpness);
+    },
+    playerId,
+  };
 }
 
 export function useHapticEngine() {

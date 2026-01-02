@@ -8,18 +8,12 @@ import Animated, {
   clamp,
   type SharedValue,
 } from 'react-native-reanimated';
-import {
-  createContinuousPlayer,
-  startContinuousPlayer,
-  stopContinuousPlayer,
-  updateContinuousPlayer,
-} from 'react-native-ahaps';
+import { useContinuousPlayer } from 'react-native-ahaps';
 
 const TOUCH_INDICATOR_SIZE = 30;
 const INITIAL_INTENSITY = 1.0;
 const INITIAL_SHARPNESS = 0.5;
-
-createContinuousPlayer(INITIAL_INTENSITY, INITIAL_SHARPNESS);
+const MINI_CONTINUOUS_PLAYER = 'mini-continuous-palette';
 
 interface MiniContinuousPaletteProps {
   size: number;
@@ -58,6 +52,12 @@ export default function MiniContinuousPalette({
   onContinuousUpdate,
   onContinuousEnd,
 }: MiniContinuousPaletteProps) {
+  const player = useContinuousPlayer(
+    MINI_CONTINUOUS_PLAYER,
+    INITIAL_INTENSITY,
+    INITIAL_SHARPNESS
+  );
+
   const touchX = useSharedValue(size / 2);
   const touchY = useSharedValue(size / 2);
   const bgOpacity = useSharedValue(0);
@@ -88,7 +88,7 @@ export default function MiniContinuousPalette({
       1
     );
 
-    updateContinuousPlayer(dynamicIntensity, dynamicSharpness);
+    player.update(dynamicIntensity, dynamicSharpness);
 
     if (onContinuousUpdate) {
       onContinuousUpdate(perceivedIntensity, perceivedSharpness);
@@ -102,7 +102,7 @@ export default function MiniContinuousPalette({
       touchY.set(clipped.y);
       bgOpacity.set(withTiming(1, { duration: 100 }));
 
-      startContinuousPlayer();
+      player.start();
       updateHaptic(clipped.x, clipped.y);
 
       const normalized = normalizeCoordinates(clipped.x, clipped.y, size);
@@ -139,7 +139,7 @@ export default function MiniContinuousPalette({
     })
     .onEnd(() => {
       bgOpacity.set(withTiming(0, { duration: 100 }));
-      stopContinuousPlayer();
+      player.stop();
 
       // Clear gesture state
       if (gestureActive) gestureActive.set(false);
@@ -150,7 +150,7 @@ export default function MiniContinuousPalette({
     })
     .onFinalize(() => {
       bgOpacity.set(withTiming(0, { duration: 100 }));
-      stopContinuousPlayer();
+      player.stop();
 
       // Clear gesture state
       if (gestureActive) gestureActive.set(false);

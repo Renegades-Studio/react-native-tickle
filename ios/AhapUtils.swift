@@ -26,9 +26,28 @@ class HapticFeedback {
 
     private var engine: CHHapticEngine?
     private var hapticPlayers: [String: CHHapticAdvancedPatternPlayer] = [:]
-    private var continuousPlayer: CHHapticAdvancedPatternPlayer?
+    private var continuousPlayers: [String: CHHapticAdvancedPatternPlayer] = [:]
+    private let lock = NSLock()
+    
+    public var supportsHaptics: Bool {
+        return CHHapticEngine.capabilitiesForHardware().supportsHaptics
+    }
 
     public func createAndStartHapticEngine() {
+        guard supportsHaptics else {
+            print("Device does not support haptics")
+            return
+        }
+        
+        lock.lock()
+        defer { lock.unlock() }
+        
+        // Clean up existing engine first
+        if engine != nil {
+            engine?.stop(completionHandler: nil)
+            engine = nil
+        }
+        
         // Create and configure a haptic engine.
         do {
             engine = try CHHapticEngine()
@@ -64,11 +83,11 @@ class HapticFeedback {
         }
 
         // The reset handler provides an opportunity to restart the engine.
-        engine?.resetHandler = {
+        engine?.resetHandler = { [weak self] in
             print("Reset Handler: Restarting the engine.")
             do {
                 // Try restarting the engine.
-                try self.engine?.start()
+                try self?.engine?.start()
             } catch {
                 print("Failed to start the engine")
             }
@@ -82,9 +101,12 @@ class HapticFeedback {
     }
 
     public func createHapticPlayers<State: HapticAnimationState>(for states: [State]) {
+        lock.lock()
+        defer { lock.unlock() }
+        
         for state in states {
             let key = String(describing: state)
-            guard hapticPlayers[key] == nil else { return }
+            guard hapticPlayers[key] == nil else { continue }
             do {
                 let pattern = try CHHapticPattern(events: state.hapticEvents, parameterCurves: state.hapticCurves)
                 let player = try engine?.makeAdvancedPlayer(with: pattern)
@@ -96,10 +118,44 @@ class HapticFeedback {
     }
 
     public func clearHapticPlayers() {
+        lock.lock()
+        defer { lock.unlock() }
+        
+        // Stop all regular haptic players
+        for (key, player) in hapticPlayers {
+            do {
+                try player.stop(atTime: CHHapticTimeImmediate)
+            } catch let error {
+                print("Error stopping haptic player \(key): \(error)")
+            }
+        }
         hapticPlayers = [:]
+        
+        // Stop all continuous players
+        for (key, player) in continuousPlayers {
+            do {
+                try player.stop(atTime: CHHapticTimeImmediate)
+            } catch let error {
+                print("Error stopping continuous player \(key): \(error)")
+            }
+        }
+        continuousPlayers = [:]
+    }
+    
+    public func destroyEngine() {
+        clearHapticPlayers()
+        
+        lock.lock()
+        defer { lock.unlock() }
+        
+        engine?.stop(completionHandler: nil)
+        engine = nil
     }
 
     public func startHapticPlayer<State: HapticAnimationState>(for state: State) {
+        lock.lock()
+        defer { lock.unlock() }
+        
         let key = String(describing: state)
         do {
             try hapticPlayers[key]?.start(atTime: CHHapticTimeImmediate)
@@ -109,6 +165,9 @@ class HapticFeedback {
     }
 
     public func stopHapticPlayer<State: HapticAnimationState>(for state: State) {
+        lock.lock()
+        defer { lock.unlock() }
+        
         let key = String(describing: state)
         do {
             try hapticPlayers[key]?.stop(atTime: CHHapticTimeImmediate)
@@ -118,6 +177,9 @@ class HapticFeedback {
     }
 
     public func stopAllHapticPlayers() {
+        lock.lock()
+        defer { lock.unlock() }
+        
         for (key, player) in hapticPlayers {
             do {
                 try player.stop(atTime: CHHapticTimeImmediate)
@@ -128,8 +190,28 @@ class HapticFeedback {
     }
 
     // MARK: - Continuous Player Methods
-
-    public func createContinuousPlayer(initialIntensity: Float, initialSharpness: Float) {
+    
+    /// Creates a continuous haptic player with the given ID.
+    /// - If a player with this ID already exists, it will be stopped and replaced.
+    /// - If the engine is not initialized or device doesn't support haptics, this is a no-op.
+    public func createContinuousPlayer(playerId: String, initialIntensity: Float, initialSharpness: Float) {
+        lock.lock()
+        defer { lock.unlock() }
+        
+        // Guard: Check if engine exists
+        guard let engine = engine else {
+            print("[Ahap] Cannot create continuous player '\(playerId)': Engine not initialized. Call initializeEngine() first.")
+            return
+        }
+        
+        // If player already exists with this ID, destroy it first
+        if let existingPlayer = continuousPlayers[playerId] {
+            do {
+                try existingPlayer.stop(atTime: CHHapticTimeImmediate)
+            } catch {}
+            continuousPlayers.removeValue(forKey: playerId)
+        }
+        
         do {
             // Create an intensity parameter
             let intensity = CHHapticEventParameter(parameterID: .hapticIntensity, value: initialIntensity)
@@ -142,28 +224,51 @@ class HapticFeedback {
                 eventType: .hapticContinuous,
                 parameters: [intensity, sharpness],
                 relativeTime: 0,
-                duration: 100
+                duration: 30000
             )
             
             // Create a pattern from the continuous haptic event
             let pattern = try CHHapticPattern(events: [continuousEvent], parameters: [])
             
             // Create a player from the continuous haptic pattern
-            continuousPlayer = try engine?.makeAdvancedPlayer(with: pattern)
+            let player = try engine.makeAdvancedPlayer(with: pattern)
+            continuousPlayers[playerId] = player
         } catch let error {
-            print("Continuous Player Creation Error: \(error)")
+            print("[Ahap] Continuous player '\(playerId)' creation error: \(error)")
         }
     }
 
-    public func startContinuousPlayer() {
+    /// Starts the continuous haptic player with the given ID.
+    /// - If the player doesn't exist (not created or already destroyed), this is a safe no-op.
+    public func startContinuousPlayer(playerId: String) {
+        lock.lock()
+        defer { lock.unlock() }
+        
+        guard let player = continuousPlayers[playerId] else {
+            // Player doesn't exist - this is safe, just a no-op
+            // This can happen if start is called before create, or after destroy
+            return
+        }
+        
         do {
-            try continuousPlayer?.start(atTime: CHHapticTimeImmediate)
+            try player.start(atTime: CHHapticTimeImmediate)
         } catch let error {
-            print("Error starting continuous player: \(error)")
+            print("[Ahap] Error starting continuous player '\(playerId)': \(error)")
         }
     }
 
-    public func updateContinuousPlayer(intensityControl: Float, sharpnessControl: Float) {
+    /// Updates the continuous haptic player parameters.
+    /// - If the player doesn't exist, this is a safe no-op.
+    /// - Parameters can be updated even before start() - they will take effect when started.
+    public func updateContinuousPlayer(playerId: String, intensityControl: Float, sharpnessControl: Float) {
+        lock.lock()
+        defer { lock.unlock() }
+        
+        guard let player = continuousPlayers[playerId] else {
+            // Player doesn't exist - safe no-op
+            return
+        }
+        
         // Create dynamic parameters for the updated intensity & sharpness
         let intensityParameter = CHHapticDynamicParameter(
             parameterID: .hapticIntensityControl,
@@ -179,18 +284,49 @@ class HapticFeedback {
         
         // Send dynamic parameters to the haptic player
         do {
-            try continuousPlayer?.sendParameters([intensityParameter, sharpnessParameter], atTime: 0)
+            try player.sendParameters([intensityParameter, sharpnessParameter], atTime: 0)
         } catch let error {
-            print("Dynamic Parameter Error: \(error)")
+            print("[Ahap] Dynamic parameter error for player '\(playerId)': \(error)")
         }
     }
 
-    public func stopContinuousPlayer() {
-        do {
-            try continuousPlayer?.stop(atTime: CHHapticTimeImmediate)
-        } catch let error {
-            print("Error stopping continuous player: \(error)")
+    /// Stops the continuous haptic player.
+    /// - If the player doesn't exist or is already stopped, this is a safe no-op.
+    public func stopContinuousPlayer(playerId: String) {
+        lock.lock()
+        defer { lock.unlock() }
+        
+        guard let player = continuousPlayers[playerId] else {
+            // Player doesn't exist - safe no-op
+            return
         }
+        
+        do {
+            try player.stop(atTime: CHHapticTimeImmediate)
+        } catch let error {
+            print("[Ahap] Error stopping continuous player '\(playerId)': \(error)")
+        }
+    }
+    
+    /// Destroys the continuous haptic player and releases resources.
+    /// - If the player doesn't exist (not created or already destroyed), this is a safe no-op.
+    /// - The player will be stopped if it's currently playing.
+    public func destroyContinuousPlayer(playerId: String) {
+        lock.lock()
+        defer { lock.unlock() }
+        
+        guard let player = continuousPlayers[playerId] else {
+            // Player doesn't exist - safe no-op
+            // This can happen if destroy is called before create, or called multiple times
+            return
+        }
+        
+        do {
+            try player.stop(atTime: CHHapticTimeImmediate)
+        } catch {
+            // Ignore stop errors during destroy - player might already be stopped
+        }
+        continuousPlayers.removeValue(forKey: playerId)
     }
 }
 
