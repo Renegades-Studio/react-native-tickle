@@ -5,10 +5,10 @@
     "userInterfaceStyle": "automatic",
     "icon": "./assets/app-icon.png",
     "android": {
-      "package": "com.renegades.haptixstudio"
+      "package": "com.renegades.ahaps"
     },
     "ios": {
-      "bundleIdentifier": "com.renegades.haptixstudio",
+      "bundleIdentifier": "com.renegades.ahaps",
       "appleTeamId": "LYW59CWY29",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
