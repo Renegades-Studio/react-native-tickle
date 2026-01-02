@@ -179,11 +179,9 @@ export function SomeScreen() {
 
 ## Types (inputs)
 
-| Type                  | Values                        |
-| --------------------- | ----------------------------- |
-| `HapticEventType`     | `'transient' \| 'continuous'` |
-| `HapticParameterType` | `'intensity' \| 'sharpness'`  |
-| `HapticCurveType`     | `'intensity' \| 'sharpness'`  |
+| Type                  | Values                       |
+| --------------------- | ---------------------------- |
+| `HapticParameterType` | `'intensity' \| 'sharpness'` |
 
 | `HapticEventParameter` | Type                  |
 | ---------------------- | --------------------- |

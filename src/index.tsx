@@ -1,7 +1,27 @@
 import { useEffect } from 'react';
 import { AppState } from 'react-native';
 import { NitroModules } from 'react-native-nitro-modules';
-import type { Ahap, HapticCurve, HapticEvent } from './Ahap.nitro';
+import type {
+  Ahap,
+  HapticCurve,
+  HapticEventParameter,
+  HapticParameterType,
+} from './Ahap.nitro';
+
+export type TransientHapticEvent = {
+  type: 'transient';
+  parameters: HapticEventParameter[];
+  relativeTime: number;
+};
+
+export type ContinuousHapticEvent = {
+  type: 'continuous';
+  parameters: HapticEventParameter[];
+  relativeTime: number;
+  duration: number;
+};
+
+export type HapticEvent = TransientHapticEvent | ContinuousHapticEvent;
 
 const AhapHybridObject = NitroModules.createHybridObject<Ahap>('Ahap');
 
@@ -93,4 +113,4 @@ export function HapticProvider({ children }: { children: React.ReactNode }) {
 }
 
 export { AhapHybridObject };
-export type { HapticCurve, HapticEvent };
+export type { HapticCurve, HapticEventParameter, HapticParameterType };

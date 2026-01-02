@@ -2,7 +2,7 @@ import type { HybridObject } from 'react-native-nitro-modules';
 
 export type HapticEventType = 'transient' | 'continuous';
 export type HapticParameterType = 'intensity' | 'sharpness';
-export type HapticCurveType = 'intensity' | 'sharpness';
+
 export type HapticEventParameter = {
   type: HapticParameterType;
   value: number;
@@ -12,21 +12,15 @@ export type HapticCurveControlPoint = {
   value: number;
 };
 
-export type HapticEvent =
-  | {
-      type: 'transient';
-      parameters: HapticEventParameter[];
-      relativeTime: number;
-    }
-  | {
-      type: 'continuous';
-      parameters: HapticEventParameter[];
-      relativeTime: number;
-      duration: number;
-    };
+export type HapticEvent = {
+  type: HapticEventType;
+  parameters: HapticEventParameter[];
+  relativeTime: number;
+  duration?: number; // Optional for transient events
+};
 
 export type HapticCurve = {
-  type: HapticCurveType;
+  type: HapticParameterType;
   controlPoints: HapticCurveControlPoint[];
   relativeTime: number;
 };
