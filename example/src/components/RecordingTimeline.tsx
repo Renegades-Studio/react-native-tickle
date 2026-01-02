@@ -38,7 +38,8 @@ const TRANSIENT_INTENSITY_COLOR = '#00E5FF';
 const TRANSIENT_SHARPNESS_COLOR = '#FFB366';
 
 export const TIMELINE_WIDTH = SCREEN_WIDTH - 32;
-export const PIXELS_PER_SECOND = 100;
+export const PIXELS_PER_MILLISECOND = 0.1;
+const PIXELS_PER_SECOND = PIXELS_PER_MILLISECOND * 1000;
 export const PLAYHEAD_OFFSET = TIMELINE_WIDTH / 2;
 
 const DOWNSAMPLE_INTERVAL_PX = 1;
@@ -61,7 +62,7 @@ const LANE_GAP = 4;
 const LANE_PADDING = 6;
 
 const MAX_CONTENT_WIDTH =
-  PLAYHEAD_OFFSET + 120 * PIXELS_PER_SECOND + PLAYHEAD_OFFSET;
+  PLAYHEAD_OFFSET + 120000 * PIXELS_PER_MILLISECOND + PLAYHEAD_OFFSET; // 120 seconds in ms
 
 export default function RecordingTimeline({
   mode,
@@ -128,7 +129,7 @@ export default function RecordingTimeline({
       const userScrolling = isDragging.get() || isMomentumScrolling.get();
       if (!userScrolling) return;
 
-      const maxScroll = totalDuration.get() * PIXELS_PER_SECOND;
+      const maxScroll = totalDuration.get() * PIXELS_PER_MILLISECOND;
       const rawX = event.contentOffset.x;
       const clampedX = Math.min(Math.max(0, rawX), maxScroll);
 
@@ -143,8 +144,8 @@ export default function RecordingTimeline({
       scrollX.set(clampedX);
 
       // Haptic feedback at timeline marks
-      const currentTimeSeconds = clampedX / PIXELS_PER_SECOND;
-      const currentMark = Math.floor(currentTimeSeconds * 10); // 0.1s precision
+      const currentTimeMs = clampedX / PIXELS_PER_MILLISECOND;
+      const currentMark = Math.floor(currentTimeMs / 100); // 100ms precision
       const lastMark = lastHapticMark.get();
 
       if (currentMark !== lastMark) {
@@ -158,7 +159,7 @@ export default function RecordingTimeline({
         }
       }
 
-      onSeek(clampedX / PIXELS_PER_SECOND);
+      onSeek(clampedX / PIXELS_PER_MILLISECOND); // Already in milliseconds
     },
 
     onEndDrag: (event) => {
@@ -166,7 +167,7 @@ export default function RecordingTimeline({
 
       const m = mode.get();
       if (m === 'playback') {
-        const maxScroll = totalDuration.get() * PIXELS_PER_SECOND;
+        const maxScroll = totalDuration.get() * PIXELS_PER_MILLISECOND;
         if (event.contentOffset.x > maxScroll) {
           scrollX.set(maxScroll);
           scrollTo(scrollViewRef, maxScroll, 0, true);
@@ -191,12 +192,12 @@ export default function RecordingTimeline({
 
       const m = mode.get();
       if (m === 'playback') {
-        const maxScroll = totalDuration.get() * PIXELS_PER_SECOND;
+        const maxScroll = totalDuration.get() * PIXELS_PER_MILLISECOND;
         const currentScroll = scrollX.get();
         if (currentScroll > maxScroll) {
           scrollX.set(maxScroll);
           scrollTo(scrollViewRef, maxScroll, 0, true);
-          onSeek(totalDuration.get());
+          onSeek(totalDuration.get()); // Already in milliseconds
         }
       }
 
@@ -211,7 +212,7 @@ export default function RecordingTimeline({
       .get()
       .filter((e) => e.type === 'transient')
       .map((e) => ({
-        x: PLAYHEAD_OFFSET + e.timestamp * PIXELS_PER_SECOND,
+        x: PLAYHEAD_OFFSET + e.timestamp * PIXELS_PER_MILLISECOND,
         intensity: e.intensity,
         sharpness: e.sharpness,
       }));
@@ -224,7 +225,7 @@ export default function RecordingTimeline({
 
     for (const event of events.get()) {
       if (event.type === 'continuous_start') {
-        const x = PLAYHEAD_OFFSET + event.timestamp * PIXELS_PER_SECOND;
+        const x = PLAYHEAD_OFFSET + event.timestamp * PIXELS_PER_MILLISECOND;
         currentSegment = {
           points: [
             { x, intensity: event.intensity, sharpness: event.sharpness },
@@ -238,7 +239,7 @@ export default function RecordingTimeline({
           event.type === 'continuous_end') &&
         currentSegment
       ) {
-        const x = PLAYHEAD_OFFSET + event.timestamp * PIXELS_PER_SECOND;
+        const x = PLAYHEAD_OFFSET + event.timestamp * PIXELS_PER_MILLISECOND;
         currentSegment.endX = x;
 
         if (

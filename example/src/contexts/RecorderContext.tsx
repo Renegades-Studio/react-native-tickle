@@ -16,7 +16,7 @@ import {
   trimHapticDataFromSeekTime,
   hapticEventsToRecordingEvents,
 } from '../utils/hapticPlayback';
-import { PIXELS_PER_SECOND } from '../components/RecordingTimeline';
+import { PIXELS_PER_MILLISECOND } from '../components/RecordingTimeline';
 import { scheduleOnRN } from 'react-native-worklets';
 import { storage, STORAGE_KEYS } from '../utils/storage';
 
@@ -111,21 +111,21 @@ export function RecorderProvider({ children }: { children: ReactNode }) {
     const now = Date.now();
 
     if (mode.get() === 'recording' && isRecording.get()) {
-      const elapsed = (now - recordingStartTimestamp.get()) / 1000;
+      const elapsed = now - recordingStartTimestamp.get();
       recordingTime.set(elapsed);
-      scrollX.set(elapsed * PIXELS_PER_SECOND);
+      scrollX.set(elapsed * PIXELS_PER_MILLISECOND);
     } else if (mode.get() === 'playback' && isPlaying.get()) {
-      const elapsed = (now - playbackStartTimestamp.get()) / 1000;
+      const elapsed = now - playbackStartTimestamp.get();
       const newTime = playbackStartTime.get() + elapsed;
       const maxTime = playbackTotalDuration.get();
 
       if (newTime >= maxTime) {
         playbackTime.set(maxTime);
         isPlaying.set(false);
-        scrollX.set(maxTime * PIXELS_PER_SECOND);
+        scrollX.set(maxTime * PIXELS_PER_MILLISECOND);
       } else {
         playbackTime.set(newTime);
-        scrollX.set(newTime * PIXELS_PER_SECOND);
+        scrollX.set(newTime * PIXELS_PER_MILLISECOND);
       }
     }
   }, false);
@@ -379,7 +379,7 @@ export function RecorderProvider({ children }: { children: ReactNode }) {
     'worklet';
     isUserScrolling.set(false);
     const time = playbackTime.get();
-    scrollX.set(time * PIXELS_PER_SECOND);
+    scrollX.set(time * PIXELS_PER_MILLISECOND);
   };
 
   const deleteRecording = (id: string) => {

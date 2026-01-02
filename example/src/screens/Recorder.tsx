@@ -80,11 +80,11 @@ function RecorderContent() {
   const durationText = useDerivedValue(() => {
     const m = mode.get();
     if (m === 'recording') {
-      return `${recordingTime.get().toFixed(1)}s`;
+      return `${(recordingTime.get() / 1000).toFixed(1)}s`;
     }
     if (m === 'playback') {
-      const current = playbackTime.get();
-      const total = playbackTotalDuration.get();
+      const current = playbackTime.get() / 1000;
+      const total = playbackTotalDuration.get() / 1000;
       return `${current.toFixed(1)}s / ${total.toFixed(1)}s`;
     }
     return '';

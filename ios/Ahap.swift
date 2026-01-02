@@ -53,20 +53,20 @@ class Ahap: HybridAhapSpec {
     return CHHapticEvent(
     eventType: eventType,
     parameters: parameters,
-    relativeTime: event.relativeTime,
-    duration: event.type == .continuous ? event.duration ?? 1.0 : 0
+    relativeTime: event.relativeTime / 1000.0,
+    duration: event.type == .continuous ? (event.duration ?? 1000.0) / 1000.0 : 0
     )
 }
 
 let hapticCurves = curves.map { curve -> CHHapticParameterCurve in
     let parameterID: CHHapticDynamicParameter.ID = (curve.type == .intensity) ? .hapticIntensityControl : .hapticSharpnessControl
     let controlPoints = curve.controlPoints.map { controlPoint -> CHHapticParameterCurve.ControlPoint in
-        return CHHapticParameterCurve.ControlPoint(relativeTime: controlPoint.relativeTime, value: Float(controlPoint.value))
+        return CHHapticParameterCurve.ControlPoint(relativeTime: controlPoint.relativeTime / 1000.0, value: Float(controlPoint.value))
     }
     return CHHapticParameterCurve(
         parameterID: parameterID,
         controlPoints: controlPoints,
-        relativeTime: curve.relativeTime
+        relativeTime: curve.relativeTime / 1000.0
     )
 }
 

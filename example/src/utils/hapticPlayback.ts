@@ -76,13 +76,11 @@ export function hapticEventsToRecordingEvents(
       if (curves) {
         const intensityCurve = curves.find(
           (c) =>
-            c.type === 'intensity' &&
-            Math.abs(c.relativeTime - eventStart) < 0.001
+            c.type === 'intensity' && Math.abs(c.relativeTime - eventStart) < 1
         );
         const sharpnessCurve = curves.find(
           (c) =>
-            c.type === 'sharpness' &&
-            Math.abs(c.relativeTime - eventStart) < 0.001
+            c.type === 'sharpness' && Math.abs(c.relativeTime - eventStart) < 1
         );
 
         const intensityPoints = intensityCurve?.controlPoints ?? [];
@@ -106,7 +104,7 @@ export function hapticEventsToRecordingEvents(
           let intensityValue = intensity;
           if (intensityPoints.length > 0) {
             const exactPoint = intensityPoints.find(
-              (p) => Math.abs(p.relativeTime - t) < 0.001
+              (p) => Math.abs(p.relativeTime - t) < 1
             );
             if (exactPoint) {
               intensityValue = exactPoint.value;
@@ -134,7 +132,7 @@ export function hapticEventsToRecordingEvents(
           let sharpnessValue = sharpness;
           if (sharpnessPoints.length > 0) {
             const exactPoint = sharpnessPoints.find(
-              (p) => Math.abs(p.relativeTime - t) < 0.001
+              (p) => Math.abs(p.relativeTime - t) < 1
             );
             if (exactPoint) {
               sharpnessValue = exactPoint.value;

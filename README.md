@@ -71,7 +71,7 @@ startHaptic(
     {
       type: 'continuous',
       relativeTime: 0,
-      duration: 1.2,
+      duration: 1200,
       parameters: [
         { type: 'intensity', value: 0.2 },
         { type: 'sharpness', value: 0.5 },
@@ -83,9 +83,9 @@ startHaptic(
       type: 'intensity',
       relativeTime: 0,
       controlPoints: [
-        { relativeTime: 0.0, value: 0.2 },
-        { relativeTime: 0.6, value: 1.0 },
-        { relativeTime: 1.2, value: 0.2 },
+        { relativeTime: 0, value: 0.2 },
+        { relativeTime: 600, value: 1.0 },
+        { relativeTime: 1200, value: 0.2 },
       ],
     },
   ]
@@ -109,8 +109,8 @@ startHaptic(
     },
     {
       type: 'continuous',
-      relativeTime: 0.05,
-      duration: 0.8,
+      relativeTime: 50,
+      duration: 800,
       parameters: [
         { type: 'intensity', value: 0.2 },
         { type: 'sharpness', value: 0.4 },
