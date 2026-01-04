@@ -78,7 +78,7 @@ export default function EventEditorPanel({
             <PanInput
               label="Start Time"
               value={event.startTime}
-              unit="s"
+              unit="sec"
               onValueChange={(value) => onUpdateEvent({ startTime: value })}
               colors={colors}
             />
@@ -88,7 +88,7 @@ export default function EventEditorPanel({
               <PanInput
                 label="Duration"
                 value={(event as ContinuousComposerEvent).duration}
-                unit="s"
+                unit="sec"
                 min={0.05}
                 onValueChange={(value) => onUpdateEvent({ duration: value })}
                 colors={colors}
@@ -123,7 +123,6 @@ export default function EventEditorPanel({
           colors={colors}
         />
 
-        {/* Fade In Section (Continuous only) */}
         {isContinuous && (
           <View style={styles.fadeSection}>
             <View style={styles.fadeSectionHeader}>
@@ -134,13 +133,11 @@ export default function EventEditorPanel({
             </View>
             <SliderField
               label="Fade In Smoothness"
-              value={1 - (event as ContinuousComposerEvent).fadeInIntensity}
+              value={1 - event.fadeInIntensity}
               min={0}
               max={1}
               step={0.01}
-              displayValue={`${(
-                1 - (event as ContinuousComposerEvent).fadeInIntensity
-              ).toFixed(2)}`}
+              displayValue={`${(1 - event.fadeInIntensity).toFixed(2)}`}
               description="Higher smoothness starts from zero intensity"
               onValueChange={(value) =>
                 onUpdateEvent({ fadeInIntensity: 1 - value })
@@ -149,8 +146,10 @@ export default function EventEditorPanel({
             />
             <PanInput
               label="Duration"
-              value={(event as ContinuousComposerEvent).fadeInDuration}
-              unit="s"
+              value={event.fadeInDuration}
+              unit="sec"
+              min={0}
+              max={event.duration / 2}
               onValueChange={(value) =>
                 onUpdateEvent({ fadeInDuration: value })
               }
@@ -159,7 +158,6 @@ export default function EventEditorPanel({
           </View>
         )}
 
-        {/* Fade Out Section (Continuous only) */}
         {isContinuous && (
           <View style={styles.fadeSection}>
             <View style={styles.fadeSectionHeader}>
@@ -170,13 +168,11 @@ export default function EventEditorPanel({
             </View>
             <SliderField
               label="Fade Out Smoothness"
-              value={1 - (event as ContinuousComposerEvent).fadeOutIntensity}
+              value={1 - event.fadeOutIntensity}
               min={0}
               max={1}
               step={0.01}
-              displayValue={`${(
-                1 - (event as ContinuousComposerEvent).fadeOutIntensity
-              ).toFixed(2)}`}
+              displayValue={`${(1 - event.fadeOutIntensity).toFixed(2)}`}
               description="Higher smoothness ends at zero intensity"
               onValueChange={(value) =>
                 onUpdateEvent({ fadeOutIntensity: 1 - value })
@@ -186,7 +182,9 @@ export default function EventEditorPanel({
             <PanInput
               label="Duration"
               value={(event as ContinuousComposerEvent).fadeOutDuration}
-              unit="s"
+              unit="sec"
+              min={0}
+              max={event.duration / 2}
               onValueChange={(value) =>
                 onUpdateEvent({ fadeOutDuration: value })
               }

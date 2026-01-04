@@ -1,13 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useRef, useState } from 'react';
 import { View, Text, TextInput, StyleSheet } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
-  runOnJS,
 } from 'react-native-reanimated';
 import type { ThemeColors } from '../contexts/ThemeContext';
+import { scheduleOnRN } from 'react-native-worklets';
 
 interface PanInputProps {
   label: string;
@@ -17,9 +17,11 @@ interface PanInputProps {
   max?: number;
   step?: number;
   onValueChange: (value: number) => void;
-  colors: Pick<ThemeColors, 'text' | 'secondaryText' | 'blue' | 'timelineGrid'>;
+  colors: Pick<ThemeColors, 'text' | 'secondaryText' | 'blue' | 'timelineGrid' | 'inputBackground' | 'knobTrack'>;
 }
 
+// Knob settings
+const KNOB_MAX_TRAVEL = 8; // Maximum pixels the knob can move up or down
 // Sensitivity: ~0.01 per 5px (fine control)
 const SENSITIVITY = 0.01 / 5;
 
@@ -33,86 +35,102 @@ export default function PanInput({
   onValueChange,
   colors,
 }: PanInputProps) {
-  const [inputValue, setInputValue] = useState(value.toFixed(2));
-  const [isEditing, setIsEditing] = useState(false);
-  const scale = useSharedValue(1);
-  const startValue = useSharedValue(value);
+  const inputRef = useRef<TextInput>(null);
+  const [initialValue] = useState(value);
 
-  // Sync input value with prop when it changes externally
-  useEffect(() => {
-    if (!isEditing) {
-      setInputValue(value.toFixed(2));
-    }
-  }, [value, isEditing]);
+  const knobTranslateY = useSharedValue(0);
+  const startValue = useSharedValue(initialValue);
 
   const handleEndEditing = () => {
-    const parsed = parseFloat(inputValue);
+    const parsed = parseFloat(value.toFixed(2));
     if (!isNaN(parsed)) {
       const clamped = Math.max(min, Math.min(max, parsed));
       onValueChange(clamped);
-      setInputValue(clamped.toFixed(2));
+      inputRef.current?.setNativeProps({ text: clamped.toFixed(2) });
     } else {
-      setInputValue(value.toFixed(2));
+      inputRef.current?.setNativeProps({ text: initialValue.toFixed(2) });
     }
-    setIsEditing(false);
   };
 
   const updateValue = (newValue: number) => {
     const clamped = Math.max(min, Math.min(max, newValue));
     const stepped = Math.round(clamped / step) * step;
     onValueChange(stepped);
-    setInputValue(stepped.toFixed(2));
+    inputRef.current?.setNativeProps({ text: stepped.toFixed(2) });
   };
 
   const panGesture = Gesture.Pan()
-    .onBegin(() => {
+    .onStart(() => {
       startValue.set(value);
-      scale.set(withSpring(1.05, { damping: 15, stiffness: 300 }));
     })
     .onUpdate((event) => {
+      // Clamp the knob visual translation to the max travel distance
+      const clampedY = Math.max(
+        -KNOB_MAX_TRAVEL,
+        Math.min(KNOB_MAX_TRAVEL, event.translationY)
+      );
+      knobTranslateY.value = clampedY;
+
       // Negative translationY (pan up) should increase value
       const delta = -event.translationY * SENSITIVITY;
       const newValue = startValue.get() + delta;
-      runOnJS(updateValue)(newValue);
+      scheduleOnRN(updateValue, newValue);
     })
     .onEnd(() => {
-      scale.set(withSpring(1, { damping: 15, stiffness: 300 }));
+      // Spring back to center
+      knobTranslateY.value = withSpring(0, { damping: 90, stiffness: 1000 });
     })
     .onFinalize(() => {
-      scale.set(withSpring(1, { damping: 15, stiffness: 300 }));
+      knobTranslateY.value = withSpring(0, { damping: 90, stiffness: 1000 });
     });
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.get() }],
+  const knobAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: knobTranslateY.value }],
   }));
 
   return (
     <View style={styles.field}>
       <View style={styles.fieldHeader}>
-        <Text style={[styles.fieldLabel, { color: colors.text }]}>{label}</Text>
+        <Text style={[styles.fieldLabel, { color: colors.text }]}>
+          {label}{' '}
+          <Text style={[styles.unit, { color: colors.secondaryText }]}>
+            {unit}
+          </Text>
+        </Text>
       </View>
-      <GestureDetector gesture={panGesture}>
-        <Animated.View style={[styles.inputContainer, animatedStyle]}>
+      <View style={[styles.inputRow, { backgroundColor: colors.inputBackground }]}>
+        <View style={styles.inputContainer}>
           <TextInput
+            ref={inputRef}
             style={[
               styles.input,
               { color: colors.text, borderColor: colors.timelineGrid },
             ]}
-            value={inputValue}
+            defaultValue={initialValue.toFixed(2)}
             onChangeText={(text) => {
-              setIsEditing(true);
-              setInputValue(text);
+              const parsed = parseFloat(text);
+              if (!isNaN(parsed)) {
+                onValueChange(parsed);
+              }
             }}
             onEndEditing={handleEndEditing}
             onBlur={handleEndEditing}
             keyboardType="decimal-pad"
             selectTextOnFocus
           />
-          <Text style={[styles.unit, { color: colors.secondaryText }]}>
-            {unit}
-          </Text>
-        </Animated.View>
-      </GestureDetector>
+        </View>
+        <GestureDetector gesture={panGesture}>
+          <View style={[styles.knobTrack, { backgroundColor: colors.knobTrack }]}>
+            <Animated.View
+              style={[
+                styles.knob,
+                { backgroundColor: colors.blue },
+                knobAnimatedStyle,
+              ]}
+            />
+          </View>
+        </GestureDetector>
+      </View>
     </View>
   );
 }
@@ -131,7 +149,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    borderRadius: 12,
+    gap: 4,
+  },
   inputContainer: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
@@ -139,16 +165,26 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     height: 44,
-    borderWidth: 1,
     borderRadius: 10,
-    paddingHorizontal: 14,
     fontSize: 16,
     fontWeight: '500',
   },
   unit: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '500',
     width: 20,
   },
+  knobTrack: {
+    width: 30,
+    height: 30,
+    borderRadius: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  knob: {
+    width: 30,
+    height: 9,
+    borderRadius: 4,
+  },
 });
-

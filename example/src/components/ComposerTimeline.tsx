@@ -7,12 +7,12 @@ import Animated, {
   useAnimatedScrollHandler,
   useSharedValue,
   type SharedValue,
-  runOnJS,
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { startHaptic } from 'react-native-ahaps';
 import type { ComposerEvent } from '../types/composer';
 import { useTheme } from '../contexts/ThemeContext';
+import { scheduleOnRN } from 'react-native-worklets';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const DEFAULT_HEIGHT = 160;
@@ -213,7 +213,10 @@ export default function ComposerTimeline({
       }
 
       const tapPadding = 15;
-      if (worldX >= eventStartX - tapPadding && worldX <= eventEndX + tapPadding) {
+      if (
+        worldX >= eventStartX - tapPadding &&
+        worldX <= eventEndX + tapPadding
+      ) {
         onSelectEvent(event.id);
         return;
       }
@@ -228,7 +231,7 @@ export default function ComposerTimeline({
   };
 
   const tapGesture = Gesture.Tap().onEnd((event) => {
-    runOnJS(handleTap)(event.x, scrollX.get());
+    scheduleOnRN(handleTap, event.x, scrollX.get());
   });
 
   return (
@@ -310,7 +313,11 @@ function GridLines({
     const endSecond =
       Math.ceil((scroll + TIMELINE_WIDTH) / PIXELS_PER_SECOND) + 1;
 
-    for (let i = startSecond; i <= Math.min(endSecond, MAX_DURATION_SECONDS); i++) {
+    for (
+      let i = startSecond;
+      i <= Math.min(endSecond, MAX_DURATION_SECONDS);
+      i++
+    ) {
       const worldX = PLAYHEAD_OFFSET + i * PIXELS_PER_SECOND;
       const screenX = worldX - scroll;
 
@@ -337,7 +344,11 @@ function GridLines({
     const shortTickHeight = height * 0.05;
     const mediumTickHeight = height * 0.1;
 
-    for (let i = startSecond; i <= Math.min(endSecond, MAX_DURATION_SECONDS); i++) {
+    for (
+      let i = startSecond;
+      i <= Math.min(endSecond, MAX_DURATION_SECONDS);
+      i++
+    ) {
       for (let tenth = 1; tenth < 10; tenth++) {
         const time = i + tenth * 0.1;
         const worldX = PLAYHEAD_OFFSET + time * PIXELS_PER_SECOND;
@@ -396,7 +407,7 @@ function buildContinuousPath(
 ) {
   'worklet';
   const r = Math.min(CONTINUOUS_CORNER_RADIUS, width / 4, barHeight / 4);
-  
+
   const fadeInRatio = Math.min(fadeInDuration / duration, 0.5);
   const fadeOutRatio = Math.min(fadeOutDuration / duration, 0.5);
   const attackWidth = width * fadeInRatio;
@@ -414,11 +425,7 @@ function buildContinuousPath(
   // For simple rectangular shapes (no fades), use RRect for proper rounded corners
   if (fadeInDuration === 0 && fadeOutDuration === 0) {
     p.addRRect(
-      Skia.RRectXY(
-        Skia.XYWHRect(leftX, topY, width, barHeight),
-        r,
-        r
-      )
+      Skia.RRectXY(Skia.XYWHRect(leftX, topY, width, barHeight), r, r)
     );
     return;
   }
@@ -459,7 +466,7 @@ function buildContinuousPath(
   p.lineTo(rightX, baseline - r);
   // Bottom-right corner arc
   p.arcToTangent(rightX, baseline, rightX - r, baseline, r);
-  
+
   // Bottom edge back to start
   p.close();
 }
@@ -494,7 +501,12 @@ function TransientEventShape({
 
     p.addRRect(
       Skia.RRectXY(
-        Skia.XYWHRect(screenX - TRANSIENT_WIDTH / 2, y, TRANSIENT_WIDTH, barHeight),
+        Skia.XYWHRect(
+          screenX - TRANSIENT_WIDTH / 2,
+          y,
+          TRANSIENT_WIDTH,
+          barHeight
+        ),
         2,
         2
       )
