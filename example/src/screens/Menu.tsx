@@ -44,6 +44,18 @@ export function Menu() {
           Record and playback haptic patterns
         </Text>
       </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[styles.menuItem, { backgroundColor: colors.card }]}
+        onPress={() => router.push('/composer')}
+      >
+        <Text style={[styles.menuText, { color: colors.text }]}>
+          Haptic Composer
+        </Text>
+        <Text style={[styles.menuDescription, { color: colors.secondaryText }]}>
+          Build custom haptic patterns with precise control
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 }

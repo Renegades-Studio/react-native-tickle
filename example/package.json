@@ -12,6 +12,9 @@
     "preinstall": "cd .. && bun install && cd example"
   },
   "dependencies": {
+    "@expo/vector-icons": "^15.0.3",
+    "@react-native-community/slider": "^5.1.1",
+    "@react-native-segmented-control/segmented-control": "^2.5.7",
     "@shopify/react-native-skia": "^2.4.14",
     "expo": "^54.0.30",
     "expo-constants": "~18.0.12",

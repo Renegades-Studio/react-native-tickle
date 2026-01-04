@@ -4,6 +4,9 @@
     "": {
       "name": "haptix-studio",
       "dependencies": {
+        "@expo/vector-icons": "^15.0.3",
+        "@react-native-community/slider": "^5.1.1",
+        "@react-native-segmented-control/segmented-control": "^2.5.7",
         "@shopify/react-native-skia": "^2.4.14",
         "expo": "^54.0.30",
         "expo-constants": "~18.0.12",
@@ -471,6 +474,10 @@
     "@react-native-community/cli-tools": ["@react-native-community/cli-tools@20.0.0", "", { "dependencies": { "@vscode/sudo-prompt": "^9.0.0", "appdirsjs": "^1.2.4", "chalk": "^4.1.2", "execa": "^5.0.0", "find-up": "^5.0.0", "launch-editor": "^2.9.1", "mime": "^2.4.1", "ora": "^5.4.1", "prompts": "^2.4.2", "semver": "^7.5.2" } }, "sha512-akSZGxr1IajJ8n0YCwQoA3DI0HttJ0WB7M3nVpb0lOM+rJpsBN7WG5Ft+8ozb6HyIPX+O+lLeYazxn5VNG/Xhw=="],
 
     "@react-native-community/cli-types": ["@react-native-community/cli-types@20.0.0", "", { "dependencies": { "joi": "^17.2.1" } }, "sha512-7J4hzGWOPTBV1d30Pf2NidV+bfCWpjfCOiGO3HUhz1fH4MvBM0FbbBmE9LE5NnMz7M8XSRSi68ZGYQXgLBB2Qw=="],
+
+    "@react-native-community/slider": ["@react-native-community/slider@5.1.1", "", {}, "sha512-W98If/LnTaziU3/0h5+G1LvJaRhMc6iLQBte6UWa4WBIHDMaDPglNBIFKcCXc9Dxp83W+f+5Wv22Olq9M2HJYA=="],
+
+    "@react-native-segmented-control/segmented-control": ["@react-native-segmented-control/segmented-control@2.5.7", "", { "peerDependencies": { "react": ">=16.0", "react-native": ">=0.62" } }, "sha512-l84YeVX8xAU3lvOJSvV4nK/NbGhIm2gBfveYolwaoCbRp+/SLXtc6mYrQmM9ScXNwU14mnzjQTpTHWl5YPnkzQ=="],
 
     "@react-native/assets-registry": ["@react-native/assets-registry@0.81.5", "", {}, "sha512-705B6x/5Kxm1RKRvSv0ADYWm5JOnoiQ1ufW7h8uu2E6G9Of/eE6hP/Ivw3U5jI16ERqZxiKQwk34VJbB0niX9w=="],
 
