@@ -2,24 +2,23 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 
 interface EventNavigationProps {
-  selectedEventIndex: number | null;
+  selectedEventId: string | null;
   totalEvents: number;
   onPrevious: () => void;
   onNext: () => void;
 }
 
 export default function EventNavigation({
-  selectedEventIndex,
+  selectedEventId,
   totalEvents,
   onPrevious,
   onNext,
 }: EventNavigationProps) {
   const { colors } = useTheme();
 
-  const canGoPrevious = selectedEventIndex !== null && selectedEventIndex > 0;
-  const canGoNext =
-    selectedEventIndex !== null && selectedEventIndex < totalEvents - 1;
-  const hasSelection = selectedEventIndex !== null;
+  const hasSelection = selectedEventId !== null;
+  // Navigation buttons are enabled when there's a selection and multiple events
+  const canNavigate = hasSelection && totalEvents > 1;
 
   return (
     <View style={styles.container}>
@@ -28,51 +27,44 @@ export default function EventNavigation({
         style={[
           styles.arrowButton,
           { backgroundColor: colors.card },
-          !canGoPrevious && styles.disabledButton,
+          !canNavigate && styles.disabledButton,
         ]}
         onPress={onPrevious}
-        disabled={!canGoPrevious}
+        disabled={!canNavigate}
         activeOpacity={0.7}
       >
         <Text
           style={[
             styles.arrowText,
-            { color: canGoPrevious ? colors.blue : colors.tertiaryText },
+            { color: canNavigate ? colors.blue : colors.tertiaryText },
           ]}
         >
           ←
         </Text>
       </TouchableOpacity>
 
-      {/* Selection info */}
+      {/* Selection info - centered */}
       <View style={styles.infoContainer}>
         <Text style={[styles.infoText, { color: colors.text }]}>
-          {hasSelection
-            ? `Selected event: ${selectedEventIndex + 1}`
-            : 'No selection'}
+          {hasSelection ? 'Event selected' : 'No selection'}
         </Text>
       </View>
-
-      {/* Event count */}
-      <Text style={[styles.countText, { color: colors.secondaryText }]}>
-        {totalEvents} event{totalEvents !== 1 ? 's' : ''} total
-      </Text>
 
       {/* Next button */}
       <TouchableOpacity
         style={[
           styles.arrowButton,
           { backgroundColor: colors.blue },
-          !canGoNext && { backgroundColor: colors.card },
+          !canNavigate && { backgroundColor: colors.card },
         ]}
         onPress={onNext}
-        disabled={!canGoNext}
+        disabled={!canNavigate}
         activeOpacity={0.7}
       >
         <Text
           style={[
             styles.arrowText,
-            { color: canGoNext ? '#FFFFFF' : colors.tertiaryText },
+            { color: canNavigate ? '#FFFFFF' : colors.tertiaryText },
           ]}
         >
           →
@@ -111,10 +103,6 @@ const styles = StyleSheet.create({
   infoText: {
     fontSize: 14,
     fontWeight: '600',
-  },
-  countText: {
-    fontSize: 12,
-    marginRight: 12,
   },
 });
 

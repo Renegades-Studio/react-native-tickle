@@ -34,13 +34,13 @@ const EVENT_VERTICAL_PADDING = 10;
 
 interface ComposerTimelineProps {
   events: ComposerEvent[];
-  selectedEventIndex: number | null;
+  selectedEventId: string | null;
   currentTime: SharedValue<number>; // seconds
   totalDuration: SharedValue<number>; // seconds
   isPlaying: SharedValue<boolean>;
   scrollX: SharedValue<number>; // pixels - from context
   isUserScrolling: SharedValue<boolean>;
-  onSelectEvent: (index: number | null) => void;
+  onSelectEvent: (id: string | null) => void;
   onSeek: (timeSeconds: number) => void;
   onPause: () => void;
   onUserScrollStart: () => void;
@@ -50,7 +50,7 @@ interface ComposerTimelineProps {
 
 export default function ComposerTimeline({
   events,
-  selectedEventIndex,
+  selectedEventId,
   currentTime: _currentTime,
   totalDuration,
   isPlaying,
@@ -198,6 +198,7 @@ export default function ComposerTimeline({
   const handleTap = (x: number, scrollValue: number) => {
     const worldX = scrollValue + x;
 
+    // Iterate in reverse to select top-most (last added) event first
     for (let i = events.length - 1; i >= 0; i--) {
       const event = events[i];
       if (!event) continue;
@@ -213,7 +214,7 @@ export default function ComposerTimeline({
 
       const tapPadding = 15;
       if (worldX >= eventStartX - tapPadding && worldX <= eventEndX + tapPadding) {
-        onSelectEvent(i);
+        onSelectEvent(event.id);
         return;
       }
     }
@@ -249,7 +250,7 @@ export default function ComposerTimeline({
               />
               <EventShapes
                 events={events}
-                selectedEventIndex={selectedEventIndex}
+                selectedEventId={selectedEventId}
                 scrollX={scrollX}
                 eventAreaHeight={eventAreaHeight}
                 verticalPadding={EVENT_VERTICAL_PADDING}
@@ -377,122 +378,119 @@ function GridLines({
   );
 }
 
-function EventShapes({
-  events,
-  selectedEventIndex,
+// Corner radius for continuous shapes
+const CONTINUOUS_CORNER_RADIUS = 4;
+
+// Helper to build continuous event path with trapezoid-on-rectangle shape and rounded corners
+function buildContinuousPath(
+  p: ReturnType<typeof Skia.Path.Make>,
+  screenX: number,
+  width: number,
+  barHeight: number,
+  baseline: number,
+  fadeInDuration: number,
+  fadeOutDuration: number,
+  fadeInIntensity: number,
+  fadeOutIntensity: number,
+  duration: number
+) {
+  'worklet';
+  const r = Math.min(CONTINUOUS_CORNER_RADIUS, width / 4, barHeight / 4);
+  
+  const fadeInRatio = Math.min(fadeInDuration / duration, 0.5);
+  const fadeOutRatio = Math.min(fadeOutDuration / duration, 0.5);
+  const attackWidth = width * fadeInRatio;
+  const decayWidth = width * fadeOutRatio;
+
+  // Start height based on fadeInIntensity
+  const startHeight = fadeInIntensity * barHeight;
+  // End height based on fadeOutIntensity
+  const endHeight = fadeOutIntensity * barHeight;
+
+  const topY = baseline - barHeight;
+  const leftX = screenX;
+  const rightX = screenX + width;
+
+  // For simple rectangular shapes (no fades), use RRect for proper rounded corners
+  if (fadeInDuration === 0 && fadeOutDuration === 0) {
+    p.addRRect(
+      Skia.RRectXY(
+        Skia.XYWHRect(leftX, topY, width, barHeight),
+        r,
+        r
+      )
+    );
+    return;
+  }
+
+  // For complex shapes with fades, build path with rounded bottom corners
+  // Start at bottom-left corner (after radius)
+  p.moveTo(leftX + r, baseline);
+
+  if (fadeInDuration > 0) {
+    // Bottom-left corner arc
+    p.arcToTangent(leftX, baseline, leftX, baseline - r, r);
+    // Go up to start height
+    const startY = baseline - startHeight;
+    p.lineTo(leftX, startY);
+    // Diagonal to full height at fadeInDuration position
+    p.lineTo(leftX + attackWidth, topY);
+  } else {
+    // Bottom-left corner arc
+    p.arcToTangent(leftX, baseline, leftX, baseline - r, r);
+    // Straight up to top with rounded corner
+    p.lineTo(leftX, topY + r);
+    p.arcToTangent(leftX, topY, leftX + r, topY, r);
+  }
+
+  if (fadeOutDuration > 0) {
+    // Horizontal to fadeOut start position
+    p.lineTo(rightX - decayWidth, topY);
+    // Diagonal down to end height
+    const endY = baseline - endHeight;
+    p.lineTo(rightX, endY);
+  } else {
+    // Top edge to right with rounded corner
+    p.lineTo(rightX - r, topY);
+    p.arcToTangent(rightX, topY, rightX, topY + r, r);
+  }
+
+  // Right side down to bottom
+  p.lineTo(rightX, baseline - r);
+  // Bottom-right corner arc
+  p.arcToTangent(rightX, baseline, rightX - r, baseline, r);
+  
+  // Bottom edge back to start
+  p.close();
+}
+
+// Individual transient event component with its own derived path
+function TransientEventShape({
+  startTime,
+  intensity,
+  sharpness,
   scrollX,
   eventAreaHeight,
   verticalPadding,
+  isSelected,
 }: {
-  events: ComposerEvent[];
-  selectedEventIndex: number | null;
+  startTime: number;
+  intensity: number;
+  sharpness: number;
   scrollX: SharedValue<number>;
   eventAreaHeight: number;
   verticalPadding: number;
+  isSelected: boolean;
 }) {
-  const transientPath = useDerivedValue(() => {
+  const baseline = verticalPadding + eventAreaHeight;
+  const opacity = 0.3 + sharpness * 0.6;
+  const barHeight = Math.max(intensity * eventAreaHeight, 8);
+
+  const path = useDerivedValue(() => {
     const p = Skia.Path.Make();
     const scroll = scrollX.get();
-
-    for (let i = 0; i < events.length; i++) {
-      const event = events[i];
-      if (!event || event.type !== 'transient') continue;
-      if (i === selectedEventIndex) continue;
-
-      const screenX = PLAYHEAD_OFFSET + event.startTime * PIXELS_PER_SECOND - scroll;
-      if (screenX < -20 || screenX > TIMELINE_WIDTH + 20) continue;
-
-      const barHeight = Math.max(event.intensity * eventAreaHeight, 8);
-      const y = verticalPadding + eventAreaHeight - barHeight;
-
-      p.addRRect(
-        Skia.RRectXY(
-          Skia.XYWHRect(screenX - TRANSIENT_WIDTH / 2, y, TRANSIENT_WIDTH, barHeight),
-          2,
-          2
-        )
-      );
-    }
-
-    return p;
-  });
-
-  const continuousPath = useDerivedValue(() => {
-    const p = Skia.Path.Make();
-    const scroll = scrollX.get();
-
-    for (let i = 0; i < events.length; i++) {
-      const event = events[i];
-      if (!event || event.type !== 'continuous') continue;
-      if (i === selectedEventIndex) continue;
-      if (event.fadeInDuration > 0 || event.fadeOutDuration > 0) continue;
-
-      const screenX = PLAYHEAD_OFFSET + event.startTime * PIXELS_PER_SECOND - scroll;
-      const width = Math.max(event.duration * PIXELS_PER_SECOND, 4);
-
-      if (screenX + width < -20 || screenX > TIMELINE_WIDTH + 20) continue;
-
-      const barHeight = Math.max(event.intensity * eventAreaHeight, 8);
-      const y = verticalPadding + eventAreaHeight - barHeight;
-
-      p.addRRect(Skia.RRectXY(Skia.XYWHRect(screenX, y, width, barHeight), 4, 4));
-    }
-
-    return p;
-  });
-
-  const envelopePath = useDerivedValue(() => {
-    const p = Skia.Path.Make();
-    const scroll = scrollX.get();
-
-    for (let i = 0; i < events.length; i++) {
-      const event = events[i];
-      if (!event || event.type !== 'continuous') continue;
-      if (i === selectedEventIndex) continue;
-      if (event.fadeInDuration === 0 && event.fadeOutDuration === 0) continue;
-
-      const screenX = PLAYHEAD_OFFSET + event.startTime * PIXELS_PER_SECOND - scroll;
-      const width = Math.max(event.duration * PIXELS_PER_SECOND, 4);
-
-      if (screenX + width < -20 || screenX > TIMELINE_WIDTH + 20) continue;
-
-      const barHeight = Math.max(event.intensity * eventAreaHeight, 8);
-      const y = verticalPadding + eventAreaHeight - barHeight;
-
-      const fadeInRatio = Math.min(event.fadeInDuration / event.duration, 0.5);
-      const fadeOutRatio = Math.min(event.fadeOutDuration / event.duration, 0.5);
-      const attackWidth = width * fadeInRatio;
-      const decayWidth = width * fadeOutRatio;
-
-      p.moveTo(screenX, y + barHeight);
-      if (event.fadeInDuration > 0) {
-        p.lineTo(screenX + attackWidth, y);
-      } else {
-        p.lineTo(screenX, y);
-      }
-      if (event.fadeOutDuration > 0) {
-        p.lineTo(screenX + width - decayWidth, y);
-      } else {
-        p.lineTo(screenX + width, y);
-      }
-      p.lineTo(screenX + width, y + barHeight);
-      p.close();
-    }
-
-    return p;
-  });
-
-  const selectedTransientPath = useDerivedValue(() => {
-    const p = Skia.Path.Make();
-    if (selectedEventIndex === null) return p;
-
-    const event = events[selectedEventIndex];
-    if (!event || event.type !== 'transient') return p;
-
-    const scroll = scrollX.get();
-    const screenX = PLAYHEAD_OFFSET + event.startTime * PIXELS_PER_SECOND - scroll;
-    const barHeight = Math.max(event.intensity * eventAreaHeight, 8);
-    const y = verticalPadding + eventAreaHeight - barHeight;
+    const screenX = PLAYHEAD_OFFSET + startTime * PIXELS_PER_SECOND - scroll;
+    const y = baseline - barHeight;
 
     p.addRRect(
       Skia.RRectXY(
@@ -505,133 +503,151 @@ function EventShapes({
     return p;
   });
 
-  const selectedTransientBorderPath = useDerivedValue(() => {
+  return (
+    <Group>
+      {isSelected && (
+        <Path
+          path={path}
+          color={SELECTION_COLOR}
+          style="stroke"
+          strokeWidth={2}
+        />
+      )}
+      <Path
+        path={path}
+        color={TRANSIENT_COLOR}
+        style="fill"
+        opacity={opacity}
+      />
+    </Group>
+  );
+}
+
+// Individual continuous event component with its own derived path
+function ContinuousEventShape({
+  startTime,
+  duration,
+  intensity,
+  sharpness,
+  fadeInDuration,
+  fadeOutDuration,
+  fadeInIntensity,
+  fadeOutIntensity,
+  scrollX,
+  eventAreaHeight,
+  verticalPadding,
+  isSelected,
+}: {
+  startTime: number;
+  duration: number;
+  intensity: number;
+  sharpness: number;
+  fadeInDuration: number;
+  fadeOutDuration: number;
+  fadeInIntensity: number;
+  fadeOutIntensity: number;
+  scrollX: SharedValue<number>;
+  eventAreaHeight: number;
+  verticalPadding: number;
+  isSelected: boolean;
+}) {
+  const baseline = verticalPadding + eventAreaHeight;
+  const opacity = 0.3 + sharpness * 0.6;
+  const width = Math.max(duration * PIXELS_PER_SECOND, 4);
+  const barHeight = Math.max(intensity * eventAreaHeight, 8);
+
+  const path = useDerivedValue(() => {
     const p = Skia.Path.Make();
-    if (selectedEventIndex === null) return p;
-
-    const event = events[selectedEventIndex];
-    if (!event || event.type !== 'transient') return p;
-
     const scroll = scrollX.get();
-    const screenX = PLAYHEAD_OFFSET + event.startTime * PIXELS_PER_SECOND - scroll;
-    const barHeight = Math.max(event.intensity * eventAreaHeight, 8);
-    const y = verticalPadding + eventAreaHeight - barHeight;
+    const screenX = PLAYHEAD_OFFSET + startTime * PIXELS_PER_SECOND - scroll;
 
-    p.addRRect(
-      Skia.RRectXY(
-        Skia.XYWHRect(
-          screenX - TRANSIENT_WIDTH / 2 - 3,
-          y - 3,
-          TRANSIENT_WIDTH + 6,
-          barHeight + 6
-        ),
-        4,
-        4
-      )
+    buildContinuousPath(
+      p,
+      screenX,
+      width,
+      barHeight,
+      baseline,
+      fadeInDuration,
+      fadeOutDuration,
+      fadeInIntensity,
+      fadeOutIntensity,
+      duration
     );
-
-    return p;
-  });
-
-  const selectedContinuousPath = useDerivedValue(() => {
-    const p = Skia.Path.Make();
-    if (selectedEventIndex === null) return p;
-
-    const event = events[selectedEventIndex];
-    if (!event || event.type !== 'continuous') return p;
-    if (event.fadeInDuration > 0 || event.fadeOutDuration > 0) return p;
-
-    const scroll = scrollX.get();
-    const screenX = PLAYHEAD_OFFSET + event.startTime * PIXELS_PER_SECOND - scroll;
-    const width = Math.max(event.duration * PIXELS_PER_SECOND, 4);
-    const barHeight = Math.max(event.intensity * eventAreaHeight, 8);
-    const y = verticalPadding + eventAreaHeight - barHeight;
-
-    p.addRRect(Skia.RRectXY(Skia.XYWHRect(screenX, y, width, barHeight), 4, 4));
-
-    return p;
-  });
-
-  const selectedContinuousBorderPath = useDerivedValue(() => {
-    const p = Skia.Path.Make();
-    if (selectedEventIndex === null) return p;
-
-    const event = events[selectedEventIndex];
-    if (!event || event.type !== 'continuous') return p;
-
-    const scroll = scrollX.get();
-    const screenX = PLAYHEAD_OFFSET + event.startTime * PIXELS_PER_SECOND - scroll;
-    const width = Math.max(event.duration * PIXELS_PER_SECOND, 4);
-    const barHeight = Math.max(event.intensity * eventAreaHeight, 8);
-    const y = verticalPadding + eventAreaHeight - barHeight;
-
-    p.addRRect(
-      Skia.RRectXY(
-        Skia.XYWHRect(screenX - 3, y - 3, width + 6, barHeight + 6),
-        6,
-        6
-      )
-    );
-
-    return p;
-  });
-
-  const selectedEnvelopePath = useDerivedValue(() => {
-    const p = Skia.Path.Make();
-    if (selectedEventIndex === null) return p;
-
-    const event = events[selectedEventIndex];
-    if (!event || event.type !== 'continuous') return p;
-    if (event.fadeInDuration === 0 && event.fadeOutDuration === 0) return p;
-
-    const scroll = scrollX.get();
-    const screenX = PLAYHEAD_OFFSET + event.startTime * PIXELS_PER_SECOND - scroll;
-    const width = Math.max(event.duration * PIXELS_PER_SECOND, 4);
-    const barHeight = Math.max(event.intensity * eventAreaHeight, 8);
-    const y = verticalPadding + eventAreaHeight - barHeight;
-
-    const fadeInRatio = Math.min(event.fadeInDuration / event.duration, 0.5);
-    const fadeOutRatio = Math.min(event.fadeOutDuration / event.duration, 0.5);
-    const attackWidth = width * fadeInRatio;
-    const decayWidth = width * fadeOutRatio;
-
-    p.moveTo(screenX, y + barHeight);
-    if (event.fadeInDuration > 0) {
-      p.lineTo(screenX + attackWidth, y);
-    } else {
-      p.lineTo(screenX, y);
-    }
-    if (event.fadeOutDuration > 0) {
-      p.lineTo(screenX + width - decayWidth, y);
-    } else {
-      p.lineTo(screenX + width, y);
-    }
-    p.lineTo(screenX + width, y + barHeight);
-    p.close();
 
     return p;
   });
 
   return (
     <Group>
-      <Path path={transientPath} color={TRANSIENT_COLOR} style="fill" opacity={0.8} />
-      <Path path={continuousPath} color={CONTINUOUS_COLOR} style="fill" opacity={0.7} />
-      <Path path={envelopePath} color={CONTINUOUS_COLOR} style="fill" opacity={0.7} />
+      {isSelected && (
+        <Path
+          path={path}
+          color={SELECTION_COLOR}
+          style="stroke"
+          strokeWidth={2}
+        />
+      )}
       <Path
-        path={selectedTransientBorderPath}
-        color={SELECTION_COLOR}
-        style="stroke"
-        strokeWidth={2}
+        path={path}
+        color={CONTINUOUS_COLOR}
+        style="fill"
+        opacity={opacity}
       />
-      <Path path={selectedTransientPath} color={TRANSIENT_COLOR} style="fill" opacity={0.9} />
-      <Path
-        path={selectedContinuousBorderPath}
-        color={SELECTION_COLOR}
-        style="stroke"
-        strokeWidth={2}
-      />
-      <Path path={selectedContinuousPath} color={CONTINUOUS_COLOR} style="fill" opacity={0.9} />
-      <Path path={selectedEnvelopePath} color={CONTINUOUS_COLOR} style="fill" opacity={0.9} />
+    </Group>
+  );
+}
+
+function EventShapes({
+  events,
+  selectedEventId,
+  scrollX,
+  eventAreaHeight,
+  verticalPadding,
+}: {
+  events: ComposerEvent[];
+  selectedEventId: string | null;
+  scrollX: SharedValue<number>;
+  eventAreaHeight: number;
+  verticalPadding: number;
+}) {
+  return (
+    <Group>
+      {events.map((event) => {
+        const isSelected = event.id === selectedEventId;
+
+        if (event.type === 'transient') {
+          return (
+            <TransientEventShape
+              key={event.id}
+              startTime={event.startTime}
+              intensity={event.intensity}
+              sharpness={event.sharpness}
+              scrollX={scrollX}
+              eventAreaHeight={eventAreaHeight}
+              verticalPadding={verticalPadding}
+              isSelected={isSelected}
+            />
+          );
+        } else {
+          return (
+            <ContinuousEventShape
+              key={event.id}
+              startTime={event.startTime}
+              duration={event.duration}
+              intensity={event.intensity}
+              sharpness={event.sharpness}
+              fadeInDuration={event.fadeInDuration}
+              fadeOutDuration={event.fadeOutDuration}
+              fadeInIntensity={event.fadeInIntensity}
+              fadeOutIntensity={event.fadeOutIntensity}
+              scrollX={scrollX}
+              eventAreaHeight={eventAreaHeight}
+              verticalPadding={verticalPadding}
+              isSelected={isSelected}
+            />
+          );
+        }
+      })}
     </Group>
   );
 }
@@ -650,9 +666,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     width: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 4,
+    boxShadow: '0 0 4px rgba(0, 0, 0, 0.5)',
   },
 });

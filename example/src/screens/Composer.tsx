@@ -24,8 +24,9 @@ export function Composer() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const {
-    events,
-    selectedEventIndex,
+    eventsById,
+    eventIds,
+    selectedEventId,
     isPlaying,
     currentTime,
     totalDuration,
@@ -53,8 +54,9 @@ export function Composer() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showMoreModal, setShowMoreModal] = useState(false);
 
-  const selectedEvent =
-    selectedEventIndex !== null ? events[selectedEventIndex] : null;
+  // Derive events array for components that need it
+  const events = eventIds.map((id) => eventsById[id]).filter(Boolean) as ComposerEvent[];
+  const selectedEvent = selectedEventId ? eventsById[selectedEventId] ?? null : null;
 
   // Time display text
   const timeText = useDerivedValue(() => {
@@ -189,7 +191,7 @@ export function Composer() {
       {/* Timeline */}
       <ComposerTimeline
         events={events}
-        selectedEventIndex={selectedEventIndex}
+        selectedEventId={selectedEventId}
         currentTime={currentTime}
         totalDuration={totalDuration}
         isPlaying={isPlaying}
@@ -204,7 +206,7 @@ export function Composer() {
 
       {/* Event Navigation */}
       <EventNavigation
-        selectedEventIndex={selectedEventIndex}
+        selectedEventId={selectedEventId}
         totalEvents={events.length}
         onPrevious={selectPreviousEvent}
         onNext={selectNextEvent}
@@ -223,7 +225,7 @@ export function Composer() {
         isPlaying={isPlaying}
         canUndo={canUndo}
         canRedo={canRedo}
-        hasSelection={selectedEventIndex !== null}
+        hasSelection={selectedEventId !== null}
         onPlay={handlePlayToggle}
         onUndo={undo}
         onRedo={redo}

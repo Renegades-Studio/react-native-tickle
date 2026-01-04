@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import Slider from '@react-native-community/slider';
 import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, type ThemeColors } from '../contexts/ThemeContext';
 import type { ComposerEvent, ContinuousComposerEvent } from '../types/composer';
+import PanInput from './PanInput';
 
 interface EventEditorPanelProps {
   event: ComposerEvent | null;
@@ -72,26 +72,30 @@ export default function EventEditorPanel({
           />
         </View>
 
-        {/* Start Time */}
-        <TimeInputField
-          label="Start Time"
-          value={event.startTime}
-          unit="s"
-          onValueChange={(value) => onUpdateEvent({ startTime: value })}
-          colors={colors}
-        />
-
-        {/* Duration (Continuous only) */}
-        {isContinuous && (
-          <TimeInputField
-            label="Duration"
-            value={(event as ContinuousComposerEvent).duration}
-            unit="s"
-            min={0.05}
-            onValueChange={(value) => onUpdateEvent({ duration: value })}
-            colors={colors}
-          />
-        )}
+        {/* Start Time and Duration in flex row */}
+        <View style={styles.timeFieldsRow}>
+          <View style={styles.timeFieldWrapper}>
+            <PanInput
+              label="Start Time"
+              value={event.startTime}
+              unit="s"
+              onValueChange={(value) => onUpdateEvent({ startTime: value })}
+              colors={colors}
+            />
+          </View>
+          {isContinuous && (
+            <View style={styles.timeFieldWrapper}>
+              <PanInput
+                label="Duration"
+                value={(event as ContinuousComposerEvent).duration}
+                unit="s"
+                min={0.05}
+                onValueChange={(value) => onUpdateEvent({ duration: value })}
+                colors={colors}
+              />
+            </View>
+          )}
+        </View>
 
         {/* Intensity */}
         <SliderField
@@ -129,21 +133,21 @@ export default function EventEditorPanel({
               </Text>
             </View>
             <SliderField
-              label="Start Intensity"
-              value={(event as ContinuousComposerEvent).fadeInIntensity}
+              label="Fade In Smoothness"
+              value={1 - (event as ContinuousComposerEvent).fadeInIntensity}
               min={0}
               max={1}
               step={0.01}
               displayValue={`${(
-                event as ContinuousComposerEvent
-              ).fadeInIntensity.toFixed(2)}`}
-              description="Starting intensity (ramps from this value to full intensity)"
+                1 - (event as ContinuousComposerEvent).fadeInIntensity
+              ).toFixed(2)}`}
+              description="Higher smoothness starts from zero intensity"
               onValueChange={(value) =>
-                onUpdateEvent({ fadeInIntensity: value })
+                onUpdateEvent({ fadeInIntensity: 1 - value })
               }
               colors={colors}
             />
-            <TimeInputField
+            <PanInput
               label="Duration"
               value={(event as ContinuousComposerEvent).fadeInDuration}
               unit="s"
@@ -165,21 +169,21 @@ export default function EventEditorPanel({
               </Text>
             </View>
             <SliderField
-              label="End Intensity"
-              value={(event as ContinuousComposerEvent).fadeOutIntensity}
+              label="Fade Out Smoothness"
+              value={1 - (event as ContinuousComposerEvent).fadeOutIntensity}
               min={0}
               max={1}
               step={0.01}
               displayValue={`${(
-                event as ContinuousComposerEvent
-              ).fadeOutIntensity.toFixed(2)}`}
-              description="Ending intensity (ramps from full intensity to this value)"
+                1 - (event as ContinuousComposerEvent).fadeOutIntensity
+              ).toFixed(2)}`}
+              description="Higher smoothness ends at zero intensity"
               onValueChange={(value) =>
-                onUpdateEvent({ fadeOutIntensity: value })
+                onUpdateEvent({ fadeOutIntensity: 1 - value })
               }
               colors={colors}
             />
-            <TimeInputField
+            <PanInput
               label="Duration"
               value={(event as ContinuousComposerEvent).fadeOutDuration}
               unit="s"
@@ -245,70 +249,6 @@ function SliderField({
         maximumTrackTintColor={colors.timelineGrid}
         thumbTintColor="#FFFFFF"
       />
-    </View>
-  );
-}
-
-// Time input field component with TextInput
-interface TimeInputFieldProps {
-  label: string;
-  value: number;
-  unit: string;
-  min?: number;
-  max?: number;
-  onValueChange: (value: number) => void;
-  colors: Pick<ThemeColors, 'text' | 'secondaryText' | 'blue' | 'timelineGrid'>;
-}
-
-function TimeInputField({
-  label,
-  value,
-  unit,
-  min = 0,
-  max = 999,
-  onValueChange,
-  colors,
-}: TimeInputFieldProps) {
-  const [inputValue, setInputValue] = useState(value.toFixed(2));
-
-  // Sync input value with prop when it changes externally
-  useEffect(() => {
-    setInputValue(value.toFixed(2));
-  }, [value]);
-
-  const handleEndEditing = useCallback(() => {
-    const parsed = parseFloat(inputValue);
-    if (!isNaN(parsed)) {
-      const clamped = Math.max(min, Math.min(max, parsed));
-      onValueChange(clamped);
-      setInputValue(clamped.toFixed(2));
-    } else {
-      setInputValue(value.toFixed(2));
-    }
-  }, [inputValue, min, max, onValueChange, value]);
-
-  return (
-    <View style={styles.field}>
-      <View style={styles.fieldHeader}>
-        <Text style={[styles.fieldLabel, { color: colors.text }]}>{label}</Text>
-      </View>
-      <View style={styles.timeInputContainer}>
-        <TextInput
-          style={[
-            styles.timeInput,
-            { color: colors.text, borderColor: colors.timelineGrid },
-          ]}
-          value={inputValue}
-          onChangeText={setInputValue}
-          onEndEditing={handleEndEditing}
-          onBlur={handleEndEditing}
-          keyboardType="decimal-pad"
-          selectTextOnFocus
-        />
-        <Text style={[styles.timeInputUnit, { color: colors.secondaryText }]}>
-          {unit}
-        </Text>
-      </View>
     </View>
   );
 }
@@ -396,25 +336,6 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 40,
   },
-  timeInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  timeInput: {
-    flex: 1,
-    height: 44,
-    borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  timeInputUnit: {
-    fontSize: 14,
-    fontWeight: '500',
-    width: 20,
-  },
   fadeSection: {
     marginBottom: 8,
     paddingTop: 8,
@@ -430,5 +351,12 @@ const styles = StyleSheet.create({
   fadeSectionTitle: {
     fontSize: 15,
     fontWeight: '600',
+  },
+  timeFieldsRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  timeFieldWrapper: {
+    flex: 1,
   },
 });
