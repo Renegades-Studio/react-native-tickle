@@ -10,7 +10,6 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SymbolView } from 'expo-symbols';
-import { useCompositionsStore } from '../stores/compositionsStore';
 import { useTheme } from '../contexts/ThemeContext';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { recordedHapticSchema } from '../schemas/recordingSchema';
@@ -21,10 +20,7 @@ import { useComposer } from '../contexts/ComposerContext';
 export function ComposerImportModal() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  const importComposition = useCompositionsStore(
-    (state) => state.importComposition
-  );
-  const { loadComposition } = useComposer();
+  const { importAndLoadComposition } = useComposer();
   const [title, setTitle] = useState('');
   const [jsonText, setJsonText] = useState('');
   const [error, setError] = useState('');
@@ -85,9 +81,7 @@ export function ComposerImportModal() {
         }
       }
 
-      const newId = importComposition(title, composerEvents);
-      loadComposition(newId);
-
+      importAndLoadComposition(title, composerEvents);
       router.back();
     } catch (err) {
       if (err instanceof ZodError) {

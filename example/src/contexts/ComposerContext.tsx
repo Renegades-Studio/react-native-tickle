@@ -52,6 +52,7 @@ interface ComposerContextValue {
   onUserScrollEnd: () => void;
   loadComposition: (id: string) => void;
   createAndLoadComposition: () => string;
+  importAndLoadComposition: (name: string, composerEvents: ComposerEvent[]) => string;
   importEvents: (hapticEvents: HapticEvent[], curves?: HapticCurve[]) => void;
   exportEvents: () => { events: HapticEvent[]; curves: HapticCurve[] };
   saveToStore: () => void;
@@ -162,6 +163,33 @@ export function ComposerProvider({ children }: { children: ReactNode }) {
     totalDuration.set(0);
     currentTime.set(0);
     scrollX.set(0);
+    return newId;
+  };
+
+  const importAndLoadComposition = (
+    name: string,
+    composerEvents: ComposerEvent[]
+  ): string => {
+    // Import to store and get the new ID
+    const storeImportComposition = useCompositionsStore.getState().importComposition;
+    const newId = storeImportComposition(name, composerEvents);
+
+    // Directly load the events into context (don't look up from store)
+    const newEventsById: Record<string, ComposerEvent> = {};
+    const newEventIds: string[] = [];
+    for (const event of composerEvents) {
+      newEventsById[event.id] = event;
+      newEventIds.push(event.id);
+    }
+    setEventsById(newEventsById);
+    setEventIds(newEventIds);
+    setSelectedEventId(null);
+    setCurrentCompositionId(newId);
+    storeSelectComposition(newId);
+    totalDuration.set(getCompositionDuration(composerEvents));
+    currentTime.set(0);
+    scrollX.set(0);
+
     return newId;
   };
 
@@ -410,6 +438,7 @@ export function ComposerProvider({ children }: { children: ReactNode }) {
         onUserScrollEnd,
         loadComposition,
         createAndLoadComposition,
+        importAndLoadComposition,
         importEvents,
         exportEvents,
         saveToStore,

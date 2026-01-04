@@ -15,6 +15,7 @@ interface ComposerActionBarProps {
   onAdd: () => void;
   onDelete: () => void;
   onList: () => void;
+  onLibrary: () => void;
 }
 
 export default function ComposerActionBar({
@@ -25,6 +26,7 @@ export default function ComposerActionBar({
   onAdd,
   onDelete,
   onList,
+  onLibrary,
 }: ComposerActionBarProps) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
@@ -85,6 +87,15 @@ export default function ComposerActionBar({
           activeOpacity={0.7}
         >
           <SymbolView name="trash" size={22} tintColor="#FFFFFF" />
+        </TouchableOpacity>
+
+        {/* Library */}
+        <TouchableOpacity
+          style={[styles.button, { backgroundColor: colors.purple }]}
+          onPress={onLibrary}
+          activeOpacity={0.7}
+        >
+          <SymbolView name="books.vertical" size={22} tintColor="#FFFFFF" />
         </TouchableOpacity>
 
         {/* List */}

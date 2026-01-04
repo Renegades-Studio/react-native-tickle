@@ -32,7 +32,7 @@ const getDuration = (events: HapticEvent[]) => {
 export function ImportModal() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  const { importRecording } = useRecorder();
+  const { importAndSelectRecording } = useRecorder();
   const [title, setTitle] = useState('');
   const [jsonText, setJsonText] = useState('');
   const [error, setError] = useState('');
@@ -79,8 +79,8 @@ export function ImportModal() {
         recordingEvents,
       };
 
-      // Import the recording
-      importRecording(recording);
+      // Import and select the recording
+      importAndSelectRecording(recording);
 
       // Navigate back
       router.back();

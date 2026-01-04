@@ -10,7 +10,7 @@ import { SymbolView } from 'expo-symbols';
 import CompositionItem from '../components/CompositionItem';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { KeyboardStickyView } from 'react-native-keyboard-controller';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useState } from 'react';
 import { scheduleOnRN } from 'react-native-worklets';
 import { useTheme } from '../contexts/ThemeContext';
@@ -160,9 +160,7 @@ export function CompositionsList() {
         { backgroundColor: colors.background, paddingTop: insets.top + 16 },
       ]}
     >
-      <KeyboardStickyView
-        style={[styles.container, { backgroundColor: colors.background }]}
-      >
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.header}>
           <Text style={[styles.title, { color: colors.text }]}>
             Compositions
@@ -193,6 +191,9 @@ export function CompositionsList() {
           keyExtractor={(item) => item.id}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="interactive"
+          renderScrollComponent={(props) => (
+            <KeyboardAwareScrollView bottomOffset={50} {...props} />
+          )}
           renderItem={({ item }) => (
             <CompositionItem
               composition={item}
@@ -207,7 +208,7 @@ export function CompositionsList() {
           )}
           contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
         />
-      </KeyboardStickyView>
+      </View>
     </View>
   );
 }

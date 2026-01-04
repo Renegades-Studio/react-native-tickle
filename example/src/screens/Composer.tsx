@@ -260,6 +260,7 @@ export function Composer() {
         onAdd={() => setShowAddModal(true)}
         onDelete={handleDelete}
         onList={() => router.push('/compositions-list')}
+        onLibrary={() => router.push('/library-modal?context=composer')}
       />
 
       {/* Add Event Modal */}

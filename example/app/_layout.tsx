@@ -42,6 +42,12 @@ export default function RootLayout() {
                       presentation: 'modal',
                     }}
                   />
+                  <Stack.Screen
+                    name="library-modal"
+                    options={{
+                      presentation: 'formSheet',
+                    }}
+                  />
                 </Stack>
               </ComposerProvider>
             </RecorderProvider>

@@ -10,7 +10,7 @@ import { SymbolView } from 'expo-symbols';
 import type { RecordedHaptic } from '../types/recording';
 import RecordingItem from './RecordingItem';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Link, router } from 'expo-router';
+import { router } from 'expo-router';
 import { KeyboardStickyView } from 'react-native-keyboard-controller';
 import { useState } from 'react';
 import { scheduleOnRN } from 'react-native-worklets';
@@ -60,7 +60,7 @@ export default function RecordingsList({
     }
   };
 
-  if (recordings.length === 0) {
+  const ListEmptyComponent = () => {
     return (
       <View style={styles.emptyContainer}>
         <Text style={[styles.emptyText, { color: colors.secondaryText }]}>
@@ -69,51 +69,45 @@ export default function RecordingsList({
         <Text style={[styles.emptySubtext, { color: colors.tertiaryText }]}>
           Create a new haptic pattern or import an existing one
         </Text>
-        <View style={styles.emptyButtonsContainer}>
-          <TouchableOpacity
-            onPress={() => router.push('/import-modal')}
-            style={[
-              styles.emptyButton,
-              {
-                backgroundColor: colors.card,
-                borderColor: colors.timelineGrid,
-              },
-            ]}
-          >
-            <SymbolView
-              name="folder"
-              size={32}
-              tintColor={colors.blue}
-              style={styles.emptyButtonIcon}
-            />
-            <Text style={[styles.emptyButtonText, { color: colors.text }]}>
-              Import
-            </Text>
-          </TouchableOpacity>
-        </View>
       </View>
     );
-  }
+  };
 
   return (
     <KeyboardStickyView
       style={[styles.container, { backgroundColor: colors.background }]}
     >
-      <View style={styles.header}>
-        <Text style={[styles.title, { color: colors.text }]}>Recordings</Text>
-        <Link href="/import-modal" asChild>
-          <TouchableOpacity
-            style={[styles.addButton, { backgroundColor: colors.blue }]}
-          >
-            <SymbolView name="plus" size={24} tintColor="#FFFFFF" />
-          </TouchableOpacity>
-        </Link>
-      </View>
       <FlatList
         data={recordings}
         keyExtractor={(item) => item.id}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="interactive"
+        ListHeaderComponent={
+          <View style={styles.header}>
+            <Text style={[styles.title, { color: colors.text }]}>
+              Recordings
+            </Text>
+            <View style={styles.headerButtons}>
+              <TouchableOpacity
+                onPress={() => router.push('/library-modal?context=recorder')}
+                style={[styles.addButton, { backgroundColor: colors.purple }]}
+              >
+                <SymbolView
+                  name="books.vertical"
+                  size={24}
+                  tintColor="#FFFFFF"
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => router.push('/recorder')}
+                style={[styles.addButton, { backgroundColor: colors.blue }]}
+              >
+                <SymbolView name="plus" size={24} tintColor="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
+          </View>
+        }
+        ListEmptyComponent={<ListEmptyComponent />}
         renderItem={({ item }) => (
           <RecordingItem
             recording={item}
@@ -150,6 +144,11 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
   },
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   addButton: {
     width: 32,
     height: 32,
@@ -162,6 +161,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 32,
+    paddingTop: 60,
   },
   emptyText: {
     fontSize: 18,
@@ -175,6 +175,7 @@ const styles = StyleSheet.create({
   },
   emptyButtonsContainer: {
     gap: 16,
+    flexDirection: 'row',
   },
   emptyButton: {
     paddingHorizontal: 24,

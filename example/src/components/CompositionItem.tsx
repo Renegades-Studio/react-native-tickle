@@ -9,7 +9,10 @@ import {
 import { SymbolView } from 'expo-symbols';
 import type { Composition } from '../types/composer';
 import { useTheme } from '../contexts/ThemeContext';
-import { composerEventToHapticEvent, composerEventsToCurves } from '../types/composer';
+import {
+  composerEventToHapticEvent,
+  composerEventsToCurves,
+} from '../types/composer';
 
 interface CompositionItemProps {
   composition: Composition;
@@ -25,10 +28,7 @@ interface CompositionItemProps {
 export default function CompositionItem({
   composition,
   isSelected,
-  isPlaying,
   onSelect,
-  onPlay,
-  onPause,
   onDelete,
   onNameChange,
 }: CompositionItemProps) {
@@ -54,14 +54,6 @@ export default function CompositionItem({
       hour: '2-digit',
       minute: '2-digit',
     });
-  };
-
-  const handlePlayPausePress = () => {
-    if (isPlaying) {
-      onPause(composition.id);
-    } else {
-      onPlay(composition.id);
-    }
   };
 
   const handleExport = async () => {
@@ -136,17 +128,6 @@ export default function CompositionItem({
         {isSelected && (
           <View style={styles.actions}>
             <TouchableOpacity
-              style={[styles.button, { backgroundColor: colors.blue }]}
-              onPress={handlePlayPausePress}
-            >
-              <SymbolView
-                name={isPlaying ? 'pause.fill' : 'play.fill'}
-                size={16}
-                tintColor="#FFFFFF"
-              />
-            </TouchableOpacity>
-
-            <TouchableOpacity
               style={[styles.button, { backgroundColor: colors.green }]}
               onPress={handleExport}
             >
@@ -213,4 +194,3 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 });
-

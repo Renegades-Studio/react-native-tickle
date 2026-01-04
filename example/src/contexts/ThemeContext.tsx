@@ -17,6 +17,7 @@ export interface ThemeColors {
   accent: string;
   blue: string;
   green: string;
+  purple: string;
 
   // Surface colors
   card: string;
@@ -67,6 +68,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     accent: '#FF3B30',
     blue: '#007AFF',
     green: '#34C759',
+    purple: '#AF52DE',
 
     // Surface colors
     card: isDark ? '#1C1C1E' : '#F2F2F7',
