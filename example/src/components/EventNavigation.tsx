@@ -2,23 +2,21 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 
 interface EventNavigationProps {
-  selectedEventId: string | null;
-  totalEvents: number;
+  hasSelection: boolean;
+  canGoPrevious: boolean;
+  canGoNext: boolean;
   onPrevious: () => void;
   onNext: () => void;
 }
 
 export default function EventNavigation({
-  selectedEventId,
-  totalEvents,
+  hasSelection,
+  canGoPrevious,
+  canGoNext,
   onPrevious,
   onNext,
 }: EventNavigationProps) {
   const { colors } = useTheme();
-
-  const hasSelection = selectedEventId !== null;
-  // Navigation buttons are enabled when there's a selection and multiple events
-  const canNavigate = hasSelection && totalEvents > 1;
 
   return (
     <View style={styles.container}>
@@ -26,17 +24,18 @@ export default function EventNavigation({
       <TouchableOpacity
         style={[
           styles.arrowButton,
-          { backgroundColor: colors.card },
-          !canNavigate && styles.disabledButton,
+          {
+            backgroundColor: canGoPrevious ? colors.blue : colors.card,
+          },
         ]}
         onPress={onPrevious}
-        disabled={!canNavigate}
+        disabled={!canGoPrevious}
         activeOpacity={0.7}
       >
         <Text
           style={[
             styles.arrowText,
-            { color: canNavigate ? colors.blue : colors.tertiaryText },
+            { color: canGoPrevious ? '#FFFFFF' : colors.tertiaryText },
           ]}
         >
           ←
@@ -54,17 +53,18 @@ export default function EventNavigation({
       <TouchableOpacity
         style={[
           styles.arrowButton,
-          { backgroundColor: colors.blue },
-          !canNavigate && { backgroundColor: colors.card },
+          {
+            backgroundColor: canGoNext ? colors.blue : colors.card,
+          },
         ]}
         onPress={onNext}
-        disabled={!canNavigate}
+        disabled={!canGoNext}
         activeOpacity={0.7}
       >
         <Text
           style={[
             styles.arrowText,
-            { color: canNavigate ? '#FFFFFF' : colors.tertiaryText },
+            { color: canGoNext ? '#FFFFFF' : colors.tertiaryText },
           ]}
         >
           →
@@ -89,9 +89,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  disabledButton: {
-    opacity: 0.5,
-  },
   arrowText: {
     fontSize: 18,
     fontWeight: '600',
@@ -105,4 +102,3 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
-

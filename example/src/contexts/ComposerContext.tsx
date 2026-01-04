@@ -51,7 +51,7 @@ interface ComposerContextValue {
   canRedo: boolean;
 
   // Event actions
-  addEvent: (type: 'transient' | 'continuous') => void;
+  addEvent: (type: 'transient' | 'continuous', startTime?: number) => void;
   updateEvent: (id: string, updates: Partial<ComposerEvent>) => void;
   deleteEvent: (id: string) => void;
   clearAllEvents: () => void;
@@ -184,13 +184,17 @@ export function ComposerProvider({ children }: { children: ReactNode }) {
   // Event actions
   // ============================================
 
-  const addEvent = (type: 'transient' | 'continuous') => {
+  const addEvent = (type: 'transient' | 'continuous', startTime?: number) => {
     const eventsArray = getEventsArray();
     const duration = getCompositionDuration(eventsArray);
+    
+    // Use provided startTime or default to end of composition
+    const eventStartTime = startTime ?? duration;
+    
     const newEvent =
       type === 'transient'
-        ? createDefaultTransientEvent(duration)
-        : createDefaultContinuousEvent(duration);
+        ? createDefaultTransientEvent(eventStartTime)
+        : createDefaultContinuousEvent(eventStartTime);
 
     const newEventsById = { ...eventsById, [newEvent.id]: newEvent };
     const newEventIds = [...eventIds, newEvent.id];

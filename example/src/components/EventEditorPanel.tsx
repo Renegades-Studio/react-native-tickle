@@ -138,30 +138,37 @@ export default function EventEditorPanel({
                 Fade In
               </Text>
             </View>
-            <SliderField
-              label="Fade In Smoothness"
-              value={1 - event.fadeInIntensity}
-              min={0}
-              max={1}
-              step={0.01}
-              displayValue={`${(1 - event.fadeInIntensity).toFixed(2)}`}
-              description="Higher smoothness starts from zero intensity"
-              onValueChange={(value) =>
-                onUpdateEvent({ fadeInIntensity: 1 - value })
-              }
-              colors={colors}
-            />
-            <PanInput
-              label="Duration"
-              value={event.fadeInDuration}
-              unit="sec"
-              min={0}
-              max={event.duration / 2}
-              onValueChange={(value) =>
-                onUpdateEvent({ fadeInDuration: value })
-              }
-              colors={colors}
-            />
+            <View style={styles.fadeFieldsRow}>
+              <View style={styles.fadeDurationWrapper}>
+                <PanInput
+                  label="Duration"
+                  value={event.fadeInDuration}
+                  unit="sec"
+                  min={0}
+                  max={event.duration / 2}
+                  description={`How long the fade in takes\n`}
+                  onValueChange={(value) =>
+                    onUpdateEvent({ fadeInDuration: value })
+                  }
+                  colors={colors}
+                />
+              </View>
+              <View style={styles.fadeSliderWrapper}>
+                <SliderField
+                  label="Smoothness"
+                  value={1 - event.fadeInIntensity}
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  displayValue={`${(1 - event.fadeInIntensity).toFixed(2)}`}
+                  description="Higher smoothness starts from zero intensity"
+                  onValueChange={(value) =>
+                    onUpdateEvent({ fadeInIntensity: 1 - value })
+                  }
+                  colors={colors}
+                />
+              </View>
+            </View>
           </View>
         )}
 
@@ -177,30 +184,37 @@ export default function EventEditorPanel({
                 Fade Out
               </Text>
             </View>
-            <SliderField
-              label="Fade Out Smoothness"
-              value={1 - event.fadeOutIntensity}
-              min={0}
-              max={1}
-              step={0.01}
-              displayValue={`${(1 - event.fadeOutIntensity).toFixed(2)}`}
-              description="Higher smoothness ends at zero intensity"
-              onValueChange={(value) =>
-                onUpdateEvent({ fadeOutIntensity: 1 - value })
-              }
-              colors={colors}
-            />
-            <PanInput
-              label="Duration"
-              value={(event as ContinuousComposerEvent).fadeOutDuration}
-              unit="sec"
-              min={0}
-              max={event.duration / 2}
-              onValueChange={(value) =>
-                onUpdateEvent({ fadeOutDuration: value })
-              }
-              colors={colors}
-            />
+            <View style={styles.fadeFieldsRow}>
+              <View style={styles.fadeDurationWrapper}>
+                <PanInput
+                  label="Duration"
+                  value={(event as ContinuousComposerEvent).fadeOutDuration}
+                  unit="sec"
+                  min={0}
+                  max={event.duration / 2}
+                  description={`How long the fade out takes\n`}
+                  onValueChange={(value) =>
+                    onUpdateEvent({ fadeOutDuration: value })
+                  }
+                  colors={colors}
+                />
+              </View>
+              <View style={styles.fadeSliderWrapper}>
+                <SliderField
+                  label="Smoothness"
+                  value={1 - event.fadeOutIntensity}
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  displayValue={`${(1 - event.fadeOutIntensity).toFixed(2)}`}
+                  description="Higher smoothness ends at zero intensity"
+                  onValueChange={(value) =>
+                    onUpdateEvent({ fadeOutIntensity: 1 - value })
+                  }
+                  colors={colors}
+                />
+              </View>
+            </View>
           </View>
         )}
       </KeyboardAwareScrollView>
@@ -366,6 +380,16 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   timeFieldWrapper: {
+    flex: 1,
+  },
+  fadeFieldsRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  fadeDurationWrapper: {
+    flex: 1,
+  },
+  fadeSliderWrapper: {
     flex: 1,
   },
 });

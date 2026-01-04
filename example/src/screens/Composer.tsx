@@ -55,8 +55,19 @@ export function Composer() {
   const [showMoreModal, setShowMoreModal] = useState(false);
 
   // Derive events array for components that need it
-  const events = eventIds.map((id) => eventsById[id]).filter(Boolean) as ComposerEvent[];
-  const selectedEvent = selectedEventId ? eventsById[selectedEventId] ?? null : null;
+  const events = eventIds
+    .map((id) => eventsById[id])
+    .filter(Boolean) as ComposerEvent[];
+  const selectedEvent = selectedEventId
+    ? eventsById[selectedEventId] ?? null
+    : null;
+
+  // Navigation state
+  const selectedIndex = selectedEventId
+    ? eventIds.indexOf(selectedEventId)
+    : -1;
+  const canGoPrevious = selectedIndex > 0;
+  const canGoNext = selectedIndex >= 0 && selectedIndex < eventIds.length - 1;
 
   // Time display text
   const timeText = useDerivedValue(() => {
@@ -127,12 +138,14 @@ export function Composer() {
   // Handle add new event
   const handleAddTransient = () => {
     setShowAddModal(false);
-    addEvent('transient');
+    const playheadTime = currentTime.get();
+    addEvent('transient', playheadTime);
   };
 
   const handleAddContinuous = () => {
     setShowAddModal(false);
-    addEvent('continuous');
+    const playheadTime = currentTime.get();
+    addEvent('continuous', playheadTime);
   };
 
   // Handle export
@@ -206,8 +219,9 @@ export function Composer() {
 
       {/* Event Navigation */}
       <EventNavigation
-        selectedEventId={selectedEventId}
-        totalEvents={events.length}
+        hasSelection={selectedEventId !== null}
+        canGoPrevious={canGoPrevious}
+        canGoNext={canGoNext}
         onPrevious={selectPreviousEvent}
         onNext={selectNextEvent}
       />

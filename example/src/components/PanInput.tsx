@@ -16,6 +16,7 @@ interface PanInputProps {
   min?: number;
   max?: number;
   step?: number;
+  description?: string;
   onValueChange: (value: number) => void;
   colors: Pick<ThemeColors, 'text' | 'secondaryText' | 'blue' | 'timelineGrid' | 'inputBackground' | 'knobTrack'>;
 }
@@ -32,6 +33,7 @@ export default function PanInput({
   min = 0,
   max = 999,
   step = 0.01,
+  description,
   onValueChange,
   colors,
 }: PanInputProps) {
@@ -98,6 +100,13 @@ export default function PanInput({
           </Text>
         </Text>
       </View>
+      {description && (
+        <Text
+          style={[styles.fieldDescription, { color: colors.secondaryText }]}
+        >
+          {description}
+        </Text>
+      )}
       <View style={[styles.inputRow, { backgroundColor: colors.inputBackground }]}>
         <View style={styles.inputContainer}>
           <TextInput
@@ -148,6 +157,11 @@ const styles = StyleSheet.create({
   fieldLabel: {
     fontSize: 16,
     fontWeight: '600',
+  },
+  fieldDescription: {
+    fontSize: 12,
+    marginBottom: 8,
+    lineHeight: 16,
   },
   inputRow: {
     flexDirection: 'row',
