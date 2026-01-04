@@ -6,4 +6,5 @@ export const storage = createMMKV({
 
 export const STORAGE_KEYS = {
   RECORDINGS: 'recordings',
+  COMPOSITIONS: 'compositions',
 } as const;

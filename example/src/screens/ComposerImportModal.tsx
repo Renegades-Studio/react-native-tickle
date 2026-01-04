@@ -10,29 +10,17 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SymbolView } from 'expo-symbols';
-import type { RecordedHaptic } from '../types/recording';
-import { useRecorder } from '../contexts/RecorderContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { recordedHapticSchema } from '../schemas/recordingSchema';
 import { ZodError } from 'zod';
-import { hapticEventsToRecordingEvents } from '../utils/hapticPlayback';
-import type { HapticEvent } from 'react-native-ahaps';
+import type { ComposerEvent } from '../types/composer';
+import { useComposer } from '../contexts/ComposerContext';
 
-const getDuration = (events: HapticEvent[]) => {
-  return events.reduce((maxTime, event) => {
-    const eventEnd =
-      event.type === 'continuous'
-        ? event.relativeTime + event.duration
-        : event.relativeTime;
-    return Math.max(maxTime, eventEnd);
-  }, 0);
-};
-
-export function ImportModal() {
+export function ComposerImportModal() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  const { importAndSelectRecording } = useRecorder();
+  const { importAndLoadComposition } = useComposer();
   const [title, setTitle] = useState('');
   const [jsonText, setJsonText] = useState('');
   const [error, setError] = useState('');
@@ -40,21 +28,16 @@ export function ImportModal() {
   const handleImport = () => {
     setError('');
 
-    // Validate title
     if (!title.trim()) {
       setError('Please enter a title');
       return;
     }
 
-    // Validate and parse JSON
     try {
       const parsed = JSON.parse(jsonText);
-
-      // Validate using Zod schema
       const validationResult = recordedHapticSchema.safeParse(parsed);
 
       if (!validationResult.success) {
-        // Format Zod errors for user-friendly display
         const zodError = validationResult.error;
         const firstError = zodError.issues[0];
         const errorPath = firstError?.path.join('.') || 'unknown field';
@@ -63,34 +46,50 @@ export function ImportModal() {
         return;
       }
 
-      const { events, curves } = validationResult.data;
+      const { events } = validationResult.data;
 
-      const duration = getDuration(events);
+      const composerEvents: ComposerEvent[] = [];
 
-      const recordingEvents = hapticEventsToRecordingEvents(events, curves);
+      for (const event of events) {
+        const intensity =
+          event.parameters?.find((p) => p.type === 'intensity')?.value ?? 0.5;
+        const sharpness =
+          event.parameters?.find((p) => p.type === 'sharpness')?.value ?? 0.5;
+        const id = Date.now().toString() + Math.random().toString(36).substr(2, 9);
 
-      const recording: RecordedHaptic = {
-        id: Date.now().toString(),
-        name: title,
-        createdAt: Date.now(),
-        duration,
-        events,
-        curves,
-        recordingEvents,
-      };
+        if (event.type === 'transient') {
+          composerEvents.push({
+            id,
+            type: 'transient',
+            startTime: event.relativeTime / 1000,
+            intensity,
+            sharpness,
+          });
+        } else {
+          composerEvents.push({
+            id,
+            type: 'continuous',
+            startTime: event.relativeTime / 1000,
+            duration: (event.duration ?? 0) / 1000,
+            intensity,
+            sharpness,
+            fadeInIntensity: 0,
+            fadeInDuration: 0,
+            fadeOutIntensity: 0,
+            fadeOutDuration: 0,
+          });
+        }
+      }
 
-      // Import and select the recording
-      importAndSelectRecording(recording);
-
-      // Navigate back
+      importAndLoadComposition(title, composerEvents);
       router.back();
     } catch (err) {
       if (err instanceof ZodError) {
-        setError('Invalid recording format. Please check your JSON.');
+        setError('Invalid composition format. Please check your JSON.');
       } else if (err instanceof SyntaxError) {
         setError('Invalid JSON format. Please check your input.');
       } else {
-        setError('An error occurred while importing the recording.');
+        setError('An error occurred while importing the composition.');
       }
       console.error('Import error:', err);
     }
@@ -110,7 +109,7 @@ export function ImportModal() {
         ]}
       >
         <Text style={[styles.headerTitle, { color: colors.text }]}>
-          Import Recording
+          Import Composition
         </Text>
         {isPresented && (
           <TouchableOpacity
@@ -137,7 +136,7 @@ export function ImportModal() {
             value={title}
             autoFocus
             onChangeText={setTitle}
-            placeholder="Enter recording name"
+            placeholder="Enter composition name"
             placeholderTextColor={colors.tertiaryText}
             autoCapitalize="words"
           />
@@ -156,7 +155,7 @@ export function ImportModal() {
             ]}
             value={jsonText}
             onChangeText={setJsonText}
-            placeholder="Paste recording JSON here"
+            placeholder="Paste composition JSON here"
             placeholderTextColor={colors.tertiaryText}
             multiline
             textAlignVertical="top"
@@ -189,7 +188,7 @@ export function ImportModal() {
         </TouchableOpacity>
 
         <Text style={[styles.hint, { color: colors.secondaryText }]}>
-          Paste the JSON data exported from a recording. The recording will be
+          Paste the JSON data exported from a composition. The composition will be
           added to your list.
         </Text>
       </View>

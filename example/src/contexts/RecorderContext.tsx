@@ -47,6 +47,7 @@ interface RecorderContextValue {
   onUserScrollEnd: () => void;
   deleteRecording: (id: string) => void;
   importRecording: (recording: RecordedHaptic) => void;
+  importAndSelectRecording: (recording: RecordedHaptic) => void;
   renameRecording: (id: string, name: string) => void;
 }
 
@@ -378,6 +379,26 @@ export function RecorderProvider({ children }: { children: ReactNode }) {
     setRecordings([...recordings, recording]);
   };
 
+  const importAndSelectRecording = (recording: RecordedHaptic) => {
+    // Stop any current playback
+    if (isPlaying.get()) {
+      isPlaying.set(false);
+      stopAllHaptics();
+    }
+
+    // Add to recordings list
+    setRecordings([...recordings, recording]);
+
+    // Directly set playback state (don't look up from recordings array)
+    setSelectedRecordingId(recording.id);
+    mode.set('playback');
+    playbackEvents.set(recording.recordingEvents);
+    playbackTotalDuration.set(recording.duration);
+    playbackTime.set(0);
+    playbackStartTime.set(0);
+    scrollX.set(0);
+  };
+
   const renameRecording = (id: string, name: string) => {
     setRecordings(recordings.map((r) => (r.id === id ? { ...r, name } : r)));
   };
@@ -416,6 +437,7 @@ export function RecorderProvider({ children }: { children: ReactNode }) {
         onUserScrollEnd,
         deleteRecording,
         importRecording,
+        importAndSelectRecording,
         renameRecording,
       }}
     >

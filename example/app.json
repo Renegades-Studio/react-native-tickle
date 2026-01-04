@@ -3,13 +3,14 @@
     "name": "Haptix Studio",
     "scheme": "haptixstudio",
     "userInterfaceStyle": "automatic",
+    "orientation": "portrait",
     "icon": "./assets/app-icon.png",
     "android": {
       "package": "com.renegades.ahaps"
     },
     "ios": {
       "bundleIdentifier": "com.renegades.ahaps",
-      "appleTeamId": "LYW59CWY29",
+      "appleTeamId": "5SJXK598L4",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }

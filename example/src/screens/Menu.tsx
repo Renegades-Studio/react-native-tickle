@@ -21,29 +21,49 @@ export function Menu() {
     >
       <Text style={[styles.title, { color: colors.text }]}>Haptix Studio</Text>
 
-      <TouchableOpacity
-        style={[styles.menuItem, { backgroundColor: colors.card }]}
-        onPress={() => router.push('/playground')}
-      >
-        <Text style={[styles.menuText, { color: colors.text }]}>
-          Haptic Playground
-        </Text>
-        <Text style={[styles.menuDescription, { color: colors.secondaryText }]}>
-          Explore continuous and transient haptics
-        </Text>
-      </TouchableOpacity>
+      <View style={{ gap: 16 }}>
+        <TouchableOpacity
+          style={[styles.menuItem, { backgroundColor: colors.card }]}
+          onPress={() => router.push('/playground')}
+        >
+          <Text style={[styles.menuText, { color: colors.text }]}>
+            Playground
+          </Text>
+          <Text
+            style={[styles.menuDescription, { color: colors.secondaryText }]}
+          >
+            Explore continuous and transient haptics
+          </Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity
-        style={[styles.menuItem, { backgroundColor: colors.card }]}
-        onPress={() => router.push('/recorder')}
-      >
-        <Text style={[styles.menuText, { color: colors.text }]}>
-          Haptic Recorder
-        </Text>
-        <Text style={[styles.menuDescription, { color: colors.secondaryText }]}>
-          Record and playback haptic patterns
-        </Text>
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.menuItem, { backgroundColor: colors.card }]}
+          onPress={() => router.push('/composer')}
+        >
+          <Text style={[styles.menuText, { color: colors.text }]}>
+            Timeline Editor
+          </Text>
+          <Text
+            style={[styles.menuDescription, { color: colors.secondaryText }]}
+          >
+            Build precise haptic patterns with detailed controls
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.menuItem, { backgroundColor: colors.card }]}
+          onPress={() => router.push('/recorder')}
+        >
+          <Text style={[styles.menuText, { color: colors.text }]}>
+            Gesture Studio
+          </Text>
+          <Text
+            style={[styles.menuDescription, { color: colors.secondaryText }]}
+          >
+            Record haptics in real-time using touch gestures
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -63,7 +83,6 @@ const styles = StyleSheet.create({
   menuItem: {
     padding: 24,
     borderRadius: 16,
-    marginBottom: 16,
   },
   menuText: {
     fontSize: 24,

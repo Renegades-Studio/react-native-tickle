@@ -7,11 +7,15 @@ import {
   TextInput,
 } from 'react-native';
 import { SymbolView } from 'expo-symbols';
-import type { RecordedHaptic } from '../types/recording';
+import type { Composition } from '../types/composer';
 import { useTheme } from '../contexts/ThemeContext';
+import {
+  composerEventToHapticEvent,
+  composerEventsToCurves,
+} from '../types/composer';
 
-interface RecordingItemProps {
-  recording: RecordedHaptic;
+interface CompositionItemProps {
+  composition: Composition;
   isSelected: boolean;
   isPlaying: boolean;
   onSelect: (id: string) => void;
@@ -21,21 +25,26 @@ interface RecordingItemProps {
   onNameChange: (id: string, name: string) => void;
 }
 
-export default function RecordingItem({
-  recording,
+export default function CompositionItem({
+  composition,
   isSelected,
-  isPlaying,
   onSelect,
-  onPlay,
-  onPause,
   onDelete,
   onNameChange,
-}: RecordingItemProps) {
+}: CompositionItemProps) {
   const { colors } = useTheme();
 
-  const formatDuration = (millisecond: number) => {
-    const mins = Math.floor(millisecond / 60000);
-    const secs = Math.floor((millisecond % 60000) / 1000);
+  const formatDuration = (events: Composition['events']) => {
+    if (events.length === 0) return '0:00';
+    const maxTime = events.reduce((max, event) => {
+      const eventEnd =
+        event.type === 'continuous'
+          ? event.startTime + event.duration
+          : event.startTime + 0.1;
+      return Math.max(max, eventEnd);
+    }, 0);
+    const mins = Math.floor(maxTime / 60);
+    const secs = Math.floor(maxTime % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
@@ -47,35 +56,28 @@ export default function RecordingItem({
     });
   };
 
-  const handlePlayPausePress = () => {
-    if (isPlaying) {
-      onPause(recording.id);
-    } else {
-      onPlay(recording.id);
-    }
-  };
-
   const handleExport = async () => {
     try {
-      // Only export the essential haptic data
+      const hapticEvents = composition.events.map(composerEventToHapticEvent);
+      const hapticCurves = composerEventsToCurves(composition.events);
       const exportData = {
-        events: recording.events,
-        curves: recording.curves,
+        events: hapticEvents,
+        curves: hapticCurves,
       };
       const jsonData = JSON.stringify(exportData, null, 2);
 
       await Share.share({
         message: jsonData,
-        title: `Export ${recording.name}`,
+        title: `Export ${composition.name}`,
       });
     } catch (error) {
-      console.error('Error sharing recording:', error);
+      console.error('Error sharing composition:', error);
     }
   };
 
   return (
     <TouchableOpacity
-      onPress={() => onSelect(recording.id)}
+      onPress={() => onSelect(composition.id)}
       activeOpacity={0.8}
       disabled={isSelected}
     >
@@ -95,9 +97,9 @@ export default function RecordingItem({
             style={[styles.name, { color: colors.text }]}
             editable={isSelected}
             pointerEvents={isSelected ? 'auto' : 'none'}
-            defaultValue={recording.name}
+            defaultValue={composition.name}
             onChangeText={(text) => {
-              onNameChange(recording.id, text);
+              onNameChange(composition.id, text);
             }}
             returnKeyType="done"
             placeholderTextColor={colors.tertiaryText}
@@ -105,37 +107,26 @@ export default function RecordingItem({
           />
           <View style={styles.meta}>
             <Text style={[styles.metaText, { color: colors.secondaryText }]}>
-              {formatDuration(recording.duration)}
+              {formatDuration(composition.events)}
             </Text>
             <Text style={[styles.separator, { color: colors.secondaryText }]}>
               •
             </Text>
             <Text style={[styles.metaText, { color: colors.secondaryText }]}>
-              {formatDate(recording.createdAt)}
+              {formatDate(composition.createdAt)}
             </Text>
             <Text style={[styles.separator, { color: colors.secondaryText }]}>
               •
             </Text>
             <Text style={[styles.metaText, { color: colors.secondaryText }]}>
-              {recording.events.length} event
-              {recording.events.length !== 1 ? 's' : ''}
+              {composition.events.length} event
+              {composition.events.length !== 1 ? 's' : ''}
             </Text>
           </View>
         </View>
 
         {isSelected && (
           <View style={styles.actions}>
-            <TouchableOpacity
-              style={[styles.button, { backgroundColor: colors.blue }]}
-              onPress={handlePlayPausePress}
-            >
-              <SymbolView
-                name={isPlaying ? 'pause.fill' : 'play.fill'}
-                size={16}
-                tintColor="#FFFFFF"
-              />
-            </TouchableOpacity>
-
             <TouchableOpacity
               style={[styles.button, { backgroundColor: colors.green }]}
               onPress={handleExport}
@@ -149,7 +140,7 @@ export default function RecordingItem({
 
             <TouchableOpacity
               style={[styles.button, { backgroundColor: colors.accent }]}
-              onPress={() => onDelete(recording.id)}
+              onPress={() => onDelete(composition.id)}
             >
               <SymbolView name="xmark" size={16} tintColor="#FFFFFF" />
             </TouchableOpacity>

@@ -17,12 +17,17 @@ export interface ThemeColors {
   accent: string;
   blue: string;
   green: string;
+  purple: string;
 
   // Surface colors
   card: string;
   cardSelected: string;
   border: string;
   borderActive: string;
+
+  // Input colors
+  inputBackground: string;
+  knobTrack: string;
 
   // Timeline colors
   timelineBackground: string;
@@ -63,12 +68,17 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     accent: '#FF3B30',
     blue: '#007AFF',
     green: '#34C759',
+    purple: '#AF52DE',
 
     // Surface colors
     card: isDark ? '#1C1C1E' : '#F2F2F7',
     cardSelected: isDark ? '#0A1A2E' : '#E5F1FF',
     border: 'transparent',
     borderActive: '#007AFF',
+
+    // Input colors
+    inputBackground: isDark ? '#2C2C2E' : '#EAEAEA',
+    knobTrack: isDark ? '#3A3A3C' : '#E3E3E3',
 
     // Timeline colors
     timelineBackground: isDark ? '#1C1C1E' : '#F2F2F7',
