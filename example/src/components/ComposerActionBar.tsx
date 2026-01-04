@@ -4,7 +4,7 @@ import Animated, {
   useAnimatedStyle,
   type SharedValue,
 } from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
+import { SymbolView } from 'expo-symbols';
 import { useTheme } from '../contexts/ThemeContext';
 
 interface ComposerActionBarProps {
@@ -74,7 +74,7 @@ export default function ComposerActionBar({
           disabled={!canUndo}
           activeOpacity={0.7}
         >
-          <Ionicons name="arrow-undo" size={22} color="#FFFFFF" />
+          <SymbolView name="arrow.uturn.backward" size={22} tintColor="#FFFFFF" />
         </TouchableOpacity>
 
         {/* Add */}
@@ -83,7 +83,7 @@ export default function ComposerActionBar({
           onPress={onAdd}
           activeOpacity={0.7}
         >
-          <Ionicons name="add" size={28} color="#FFFFFF" />
+          <SymbolView name="plus" size={28} tintColor="#FFFFFF" />
         </TouchableOpacity>
 
         {/* Delete */}
@@ -97,7 +97,7 @@ export default function ComposerActionBar({
           disabled={!hasSelection}
           activeOpacity={0.7}
         >
-          <Ionicons name="trash" size={22} color="#FFFFFF" />
+          <SymbolView name="trash" size={22} tintColor="#FFFFFF" />
         </TouchableOpacity>
 
         {/* Redo */}
@@ -111,7 +111,7 @@ export default function ComposerActionBar({
           disabled={!canRedo}
           activeOpacity={0.7}
         >
-          <Ionicons name="arrow-redo" size={22} color="#FFFFFF" />
+          <SymbolView name="arrow.uturn.forward" size={22} tintColor="#FFFFFF" />
         </TouchableOpacity>
 
         {/* More options */}
@@ -120,7 +120,7 @@ export default function ComposerActionBar({
           onPress={onMore}
           activeOpacity={0.7}
         >
-          <Ionicons name="ellipsis-horizontal" size={22} color="#FFFFFF" />
+          <SymbolView name="ellipsis" size={22} tintColor="#FFFFFF" />
         </TouchableOpacity>
       </View>
     </View>
@@ -141,10 +141,10 @@ function PlayPauseIcon({ isPlaying }: { isPlaying: SharedValue<boolean> }) {
   return (
     <View style={styles.playPauseContainer}>
       <Animated.View style={playStyle}>
-        <Ionicons name="play" size={24} color="#FFFFFF" />
+        <SymbolView name="play.fill" size={24} tintColor="#FFFFFF" />
       </Animated.View>
       <Animated.View style={pauseStyle}>
-        <Ionicons name="pause" size={24} color="#FFFFFF" />
+        <SymbolView name="pause.fill" size={24} tintColor="#FFFFFF" />
       </Animated.View>
     </View>
   );

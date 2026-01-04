@@ -6,6 +6,7 @@ import {
   Share,
   TextInput,
 } from 'react-native';
+import { SymbolView } from 'expo-symbols';
 import type { RecordedHaptic } from '../types/recording';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -128,28 +129,29 @@ export default function RecordingItem({
               style={[styles.button, { backgroundColor: colors.blue }]}
               onPress={handlePlayPausePress}
             >
-              {isPlaying ? (
-                <View style={styles.pauseIcon}>
-                  <View style={styles.pauseBar} />
-                  <View style={styles.pauseBar} />
-                </View>
-              ) : (
-                <View style={styles.playIcon} />
-              )}
+              <SymbolView
+                name={isPlaying ? 'pause.fill' : 'play.fill'}
+                size={16}
+                tintColor="#FFFFFF"
+              />
             </TouchableOpacity>
 
             <TouchableOpacity
               style={[styles.button, { backgroundColor: colors.green }]}
               onPress={handleExport}
             >
-              <Text style={styles.buttonText}>↗</Text>
+              <SymbolView
+                name="square.and.arrow.up"
+                size={16}
+                tintColor="#FFFFFF"
+              />
             </TouchableOpacity>
 
             <TouchableOpacity
               style={[styles.button, { backgroundColor: colors.accent }]}
               onPress={() => onDelete(recording.id)}
             >
-              <Text style={styles.buttonText}>✕</Text>
+              <SymbolView name="xmark" size={16} tintColor="#FFFFFF" />
             </TouchableOpacity>
           </View>
         )}
@@ -199,31 +201,5 @@ const styles = StyleSheet.create({
     borderRadius: 30 / 2,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  buttonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  playIcon: {
-    width: 0,
-    height: 0,
-    borderLeftWidth: 12,
-    borderTopWidth: 8,
-    borderBottomWidth: 8,
-    borderLeftColor: '#FFFFFF',
-    borderTopColor: 'transparent',
-    borderBottomColor: 'transparent',
-    marginLeft: 3,
-  },
-  pauseIcon: {
-    flexDirection: 'row',
-    gap: 3,
-  },
-  pauseBar: {
-    width: 4,
-    height: 14,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 1,
   },
 });

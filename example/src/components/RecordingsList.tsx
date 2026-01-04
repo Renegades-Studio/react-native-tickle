@@ -6,10 +6,11 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useAnimatedReaction, type SharedValue } from 'react-native-reanimated';
+import { SymbolView } from 'expo-symbols';
 import type { RecordedHaptic } from '../types/recording';
 import RecordingItem from './RecordingItem';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
 import { KeyboardStickyView } from 'react-native-keyboard-controller';
 import { useState } from 'react';
 import { scheduleOnRN } from 'react-native-worklets';
@@ -69,22 +70,26 @@ export default function RecordingsList({
           Create a new haptic pattern or import an existing one
         </Text>
         <View style={styles.emptyButtonsContainer}>
-          <Link href="/import-modal" asChild>
-            <TouchableOpacity
-              style={[
-                styles.emptyButton,
-                {
-                  backgroundColor: colors.card,
-                  borderColor: colors.timelineGrid,
-                },
-              ]}
-            >
-              <Text style={styles.emptyButtonIcon}>📁</Text>
-              <Text style={[styles.emptyButtonText, { color: colors.text }]}>
-                Import
-              </Text>
-            </TouchableOpacity>
-          </Link>
+          <TouchableOpacity
+            onPress={() => router.push('/import-modal')}
+            style={[
+              styles.emptyButton,
+              {
+                backgroundColor: colors.card,
+                borderColor: colors.timelineGrid,
+              },
+            ]}
+          >
+            <SymbolView
+              name="folder"
+              size={32}
+              tintColor={colors.blue}
+              style={styles.emptyButtonIcon}
+            />
+            <Text style={[styles.emptyButtonText, { color: colors.text }]}>
+              Import
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
     );
@@ -100,9 +105,7 @@ export default function RecordingsList({
           <TouchableOpacity
             style={[styles.addButton, { backgroundColor: colors.blue }]}
           >
-            <Text style={[styles.addButtonText, { color: colors.text }]}>
-              +
-            </Text>
+            <SymbolView name="plus" size={24} tintColor="#FFFFFF" />
           </TouchableOpacity>
         </Link>
       </View>
@@ -154,11 +157,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  addButtonText: {
-    fontSize: 24,
-    fontWeight: '600',
-    marginTop: -2,
-  },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -176,7 +174,6 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   emptyButtonsContainer: {
-    flexDirection: 'row',
     gap: 16,
   },
   emptyButton: {
@@ -185,11 +182,8 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    minWidth: 120,
-    borderWidth: 1,
   },
   emptyButtonIcon: {
-    fontSize: 32,
     marginBottom: 8,
   },
   emptyButtonText: {

@@ -1,10 +1,11 @@
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import Slider from '@react-native-community/slider';
 import SegmentedControl from '@react-native-segmented-control/segmented-control';
-import { Ionicons } from '@expo/vector-icons';
+import { SymbolView } from 'expo-symbols';
 import { useTheme, type ThemeColors } from '../contexts/ThemeContext';
 import type { ComposerEvent, ContinuousComposerEvent } from '../types/composer';
 import PanInput from './PanInput';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
 interface EventEditorPanelProps {
   event: ComposerEvent | null;
@@ -37,7 +38,9 @@ export default function EventEditorPanel({
 
   return (
     <View style={[styles.container, { backgroundColor: colors.card }]}>
-      <ScrollView
+      <KeyboardAwareScrollView
+        keyboardDismissMode="on-drag"
+        bottomOffset={20}
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -45,10 +48,10 @@ export default function EventEditorPanel({
         {/* Event Type Segmented Control */}
         <View style={styles.segmentedControlContainer}>
           <View style={styles.segmentHeader}>
-            <Ionicons
-              name={isTransient ? 'flash' : 'pulse'}
+            <SymbolView
+              name={isTransient ? 'bolt.fill' : 'waveform'}
               size={18}
-              color={colors.blue}
+              tintColor={colors.blue}
             />
             <Text style={[styles.segmentHeaderText, { color: colors.text }]}>
               Event Type
@@ -126,7 +129,11 @@ export default function EventEditorPanel({
         {isContinuous && (
           <View style={styles.fadeSection}>
             <View style={styles.fadeSectionHeader}>
-              <Ionicons name="trending-up" size={16} color={colors.blue} />
+              <SymbolView
+                name="chart.line.uptrend.xyaxis"
+                size={16}
+                tintColor={colors.blue}
+              />
               <Text style={[styles.fadeSectionTitle, { color: colors.text }]}>
                 Fade In
               </Text>
@@ -161,7 +168,11 @@ export default function EventEditorPanel({
         {isContinuous && (
           <View style={styles.fadeSection}>
             <View style={styles.fadeSectionHeader}>
-              <Ionicons name="trending-down" size={16} color={colors.blue} />
+              <SymbolView
+                name="chart.line.downtrend.xyaxis"
+                size={16}
+                tintColor={colors.blue}
+              />
               <Text style={[styles.fadeSectionTitle, { color: colors.text }]}>
                 Fade Out
               </Text>
@@ -192,7 +203,7 @@ export default function EventEditorPanel({
             />
           </View>
         )}
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </View>
   );
 }

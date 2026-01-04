@@ -9,6 +9,7 @@ import {
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SymbolView } from 'expo-symbols';
 import type { RecordedHaptic } from '../types/recording';
 import { useRecorder } from '../contexts/RecorderContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -116,9 +117,7 @@ export function ImportModal() {
             onPress={() => router.back()}
             style={[styles.closeButton, { backgroundColor: colors.card }]}
           >
-            <Text style={[styles.closeButtonText, { color: colors.text }]}>
-              ✕
-            </Text>
+            <SymbolView name="xmark" size={18} tintColor={colors.text} />
           </TouchableOpacity>
         )}
       </View>
@@ -221,10 +220,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  closeButtonText: {
-    fontSize: 18,
-    fontWeight: '600',
   },
   content: {
     flex: 1,
