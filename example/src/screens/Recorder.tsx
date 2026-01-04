@@ -153,9 +153,7 @@ function RecorderContent() {
         { backgroundColor: colors.background, paddingTop: insets.top + 16 },
       ]}
     >
-      <Text style={[styles.title, { color: colors.text }]}>
-        Haptic Recorder
-      </Text>
+      <Text style={[styles.title, { color: colors.text }]}>Gesture Studio</Text>
 
       <View style={styles.palettes}>
         <View style={styles.paletteWrapper}>

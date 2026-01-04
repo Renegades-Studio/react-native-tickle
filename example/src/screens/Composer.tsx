@@ -209,7 +209,7 @@ export function Composer() {
     >
       {/* Header */}
       <Text style={[styles.title, { color: colors.text }]}>
-        Haptic Composer
+        Timeline Editor
       </Text>
 
       {/* Time display */}
