@@ -1,15 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   Modal,
   TouchableOpacity,
-  Share,
-  Alert,
+  AppState,
+  type AppStateStatus,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDerivedValue } from 'react-native-reanimated';
+import { useFocusEffect } from 'expo-router';
 import { useComposer } from '../contexts/ComposerContext';
 import { useTheme } from '../contexts/ThemeContext';
 import ComposerTimeline from '../components/ComposerTimeline';
@@ -19,6 +20,7 @@ import ComposerActionBar from '../components/ComposerActionBar';
 import { type ComposerEvent } from '../types/composer';
 import ReText from '../components/ReText';
 import { scheduleOnRN } from 'react-native-worklets';
+import { router } from 'expo-router';
 
 export function Composer() {
   const insets = useSafeAreaInsets();
@@ -27,32 +29,59 @@ export function Composer() {
     eventsById,
     eventIds,
     selectedEventId,
+    currentCompositionId,
     isPlaying,
     currentTime,
     totalDuration,
     scrollX,
     isUserScrolling,
     frameCallback,
-    canUndo,
-    canRedo,
     addEvent,
     updateEvent,
     deleteEvent,
     selectEvent,
     selectNextEvent,
     selectPreviousEvent,
-    undo,
-    redo,
     startPlayback,
     stopPlayback,
     seekTo,
     onUserScrollStart,
     onUserScrollEnd,
-    exportEvents,
+    createAndLoadComposition,
+    saveToStore,
   } = useComposer();
 
+  const appState = useRef(AppState.currentState);
+
+  // Save to store when screen loses focus (user navigates away)
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        saveToStore();
+      };
+    }, [])
+  );
+
+  // Save to store when app goes to background
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      if (
+        appState.current === 'active' &&
+        (nextAppState === 'inactive' || nextAppState === 'background')
+      ) {
+        saveToStore();
+      }
+      appState.current = nextAppState;
+    };
+
+    const subscription = AppState.addEventListener(
+      'change',
+      handleAppStateChange
+    );
+    return () => subscription.remove();
+  }, [saveToStore]);
+
   const [showAddModal, setShowAddModal] = useState(false);
-  const [showMoreModal, setShowMoreModal] = useState(false);
 
   // Derive events array for components that need it
   const events = eventIds
@@ -135,34 +164,22 @@ export function Composer() {
     }
   };
 
-  // Handle add new event
   const handleAddTransient = () => {
     setShowAddModal(false);
+    if (!currentCompositionId) {
+      createAndLoadComposition();
+    }
     const playheadTime = currentTime.get();
     addEvent('transient', playheadTime);
   };
 
   const handleAddContinuous = () => {
     setShowAddModal(false);
+    if (!currentCompositionId) {
+      createAndLoadComposition();
+    }
     const playheadTime = currentTime.get();
     addEvent('continuous', playheadTime);
-  };
-
-  // Handle export
-  const handleExport = async () => {
-    setShowMoreModal(false);
-    try {
-      const { events: hapticEvents, curves } = exportEvents();
-      const exportData = { events: hapticEvents, curves };
-      const jsonData = JSON.stringify(exportData, null, 2);
-
-      await Share.share({
-        message: jsonData,
-        title: 'Export Haptic Pattern',
-      });
-    } catch (error) {
-      console.error('Export error:', error);
-    }
   };
 
   // Handle seek from timeline
@@ -237,15 +254,12 @@ export function Composer() {
       {/* Action Bar */}
       <ComposerActionBar
         isPlaying={isPlaying}
-        canUndo={canUndo}
-        canRedo={canRedo}
+        canPlay={eventIds.length > 0}
         hasSelection={selectedEventId !== null}
         onPlay={handlePlayToggle}
-        onUndo={undo}
-        onRedo={redo}
         onAdd={() => setShowAddModal(true)}
         onDelete={handleDelete}
-        onMore={() => setShowMoreModal(true)}
+        onList={() => router.push('/compositions-list')}
       />
 
       {/* Add Event Modal */}
@@ -290,57 +304,6 @@ export function Composer() {
                 ]}
               >
                 Sustained haptic with duration
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Modal>
-
-      {/* More Options Modal */}
-      <Modal
-        visible={showMoreModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowMoreModal(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowMoreModal(false)}
-        >
-          <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
-            <Text style={[styles.modalTitle, { color: colors.text }]}>
-              Options
-            </Text>
-            <TouchableOpacity
-              style={[styles.modalButton, { backgroundColor: colors.green }]}
-              onPress={handleExport}
-            >
-              <Text style={styles.modalButtonText}>Export Pattern</Text>
-              <Text
-                style={[
-                  styles.modalButtonDesc,
-                  { color: 'rgba(255,255,255,0.8)' },
-                ]}
-              >
-                Share as JSON
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.modalButton, { backgroundColor: colors.blue }]}
-              onPress={() => {
-                setShowMoreModal(false);
-                Alert.alert('Import', 'Use the Import button from the menu');
-              }}
-            >
-              <Text style={styles.modalButtonText}>Import Pattern</Text>
-              <Text
-                style={[
-                  styles.modalButtonDesc,
-                  { color: 'rgba(255,255,255,0.8)' },
-                ]}
-              >
-                Load from JSON
               </Text>
             </TouchableOpacity>
           </View>

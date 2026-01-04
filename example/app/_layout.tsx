@@ -30,6 +30,18 @@ export default function RootLayout() {
                       presentation: 'formSheet',
                     }}
                   />
+                  <Stack.Screen
+                    name="composer-import-modal"
+                    options={{
+                      presentation: 'formSheet',
+                    }}
+                  />
+                  <Stack.Screen
+                    name="compositions-list"
+                    options={{
+                      presentation: 'modal',
+                    }}
+                  />
                 </Stack>
               </ComposerProvider>
             </RecorderProvider>

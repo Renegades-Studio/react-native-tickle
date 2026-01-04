@@ -15,221 +15,197 @@ import { startHaptic, stopAllHaptics } from 'react-native-ahaps';
 import type { HapticEvent, HapticCurve } from 'react-native-ahaps';
 import {
   type ComposerEvent,
-  type Composition,
   createDefaultTransientEvent,
   createDefaultContinuousEvent,
   composerEventToHapticEvent,
   composerEventsToCurves,
   getCompositionDuration,
 } from '../types/composer';
-import { storage, STORAGE_KEYS } from '../utils/storage';
 import { trimHapticDataFromSeekTime } from '../utils/hapticPlayback';
+import { useCompositionsStore } from '../stores/compositionsStore';
+import { useStateRef } from 'src/hooks/stateRef';
 
-// Pixels per second for timeline (Composer uses seconds, not milliseconds)
 export const PIXELS_PER_SECOND = 100;
 
-const MAX_HISTORY_SIZE = 50;
-
 interface ComposerContextValue {
-  // State - events stored as object for fast lookup, array derived for iteration
   eventsById: Record<string, ComposerEvent>;
-  eventIds: string[]; // Insertion order
+  eventIds: string[];
   selectedEventId: string | null;
-  compositions: Composition[];
-  selectedCompositionId: string | null;
-
-  // Playback state (shared values for UI thread)
+  currentCompositionId: string | null;
   isPlaying: SharedValue<boolean>;
-  currentTime: SharedValue<number>; // in seconds
-  totalDuration: SharedValue<number>; // in seconds
-  scrollX: SharedValue<number>; // in pixels
+  currentTime: SharedValue<number>;
+  totalDuration: SharedValue<number>;
+  scrollX: SharedValue<number>;
   isUserScrolling: SharedValue<boolean>;
   frameCallback: FrameCallback;
-
-  // Undo/Redo state
-  canUndo: boolean;
-  canRedo: boolean;
-
-  // Event actions
   addEvent: (type: 'transient' | 'continuous', startTime?: number) => void;
   updateEvent: (id: string, updates: Partial<ComposerEvent>) => void;
   deleteEvent: (id: string) => void;
   clearAllEvents: () => void;
-
-  // Selection actions
   selectEvent: (id: string | null) => void;
   selectNextEvent: () => void;
   selectPreviousEvent: () => void;
-
-  // History actions
-  undo: () => void;
-  redo: () => void;
-
-  // Playback actions (worklets)
   startPlayback: () => void;
   stopPlayback: () => void;
   seekTo: (timeSeconds: number) => void;
   onUserScrollStart: () => void;
   onUserScrollEnd: () => void;
-
-  // Composition actions
-  saveComposition: (name: string) => void;
   loadComposition: (id: string) => void;
-  deleteComposition: (id: string) => void;
+  createAndLoadComposition: () => string;
   importEvents: (hapticEvents: HapticEvent[], curves?: HapticCurve[]) => void;
   exportEvents: () => { events: HapticEvent[]; curves: HapticCurve[] };
+  saveToStore: () => void;
 }
 
 const ComposerContext = createContext<ComposerContextValue | null>(null);
 
 export function ComposerProvider({ children }: { children: ReactNode }) {
-  // Events state - stored as object for O(1) lookup
-  const [eventsById, setEventsById] = useState<Record<string, ComposerEvent>>(
-    {}
+  const compositions = useCompositionsStore((state) => state.compositions);
+  const updateComposition = useCompositionsStore(
+    (state) => state.updateComposition
   );
-  const [eventIds, setEventIds] = useState<string[]>([]); // Maintains insertion order
-  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+  const storeCreateComposition = useCompositionsStore(
+    (state) => state.createComposition
+  );
+  const storeSelectComposition = useCompositionsStore(
+    (state) => state.selectComposition
+  );
 
-  // Compositions state (persisted)
-  const [compositions, setCompositions] = useState<Composition[]>(() => {
-    try {
-      const stored = storage.getString(STORAGE_KEYS.COMPOSITIONS);
-      if (stored) {
-        return JSON.parse(stored) as Composition[];
-      }
-    } catch (error) {
-      console.error('Failed to load compositions from storage:', error);
-    }
-    return [];
-  });
-  const [selectedCompositionId, setSelectedCompositionId] = useState<
+  const [eventsById, setEventsById, eventsByIdRef] = useStateRef<
+    Record<string, ComposerEvent>
+  >({});
+  const [eventIds, setEventIds, eventIdsRef] = useStateRef<string[]>([]);
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+  const [currentCompositionId, setCurrentCompositionIdState] = useState<
     string | null
   >(null);
+  const currentCompositionIdRef = useRef<string | null>(null);
 
-  // History for undo/redo - stores snapshots of {eventsById, eventIds}
-  interface HistorySnapshot {
-    eventsById: Record<string, ComposerEvent>;
-    eventIds: string[];
-  }
-  const historyRef = useRef<HistorySnapshot[]>([]);
-  const historyIndexRef = useRef<number>(-1);
-  const [canUndo, setCanUndo] = useState(false);
-  const [canRedo, setCanRedo] = useState(false);
+  const setCurrentCompositionId = (id: string | null) => {
+    currentCompositionIdRef.current = id;
+    setCurrentCompositionIdState(id);
+  };
 
-  // Playback state - all SharedValues for UI thread access
   const isPlaying = useSharedValue(false);
-  const currentTime = useSharedValue(0); // seconds
-  const totalDuration = useSharedValue(0); // seconds
+  const currentTime = useSharedValue(0);
+  const totalDuration = useSharedValue(0);
   const playbackStartTimestamp = useSharedValue(0);
-  const playbackStartTime = useSharedValue(0); // seconds
-  const scrollX = useSharedValue(0); // pixels
+  const playbackStartTime = useSharedValue(0);
+  const scrollX = useSharedValue(0);
   const isUserScrolling = useSharedValue(false);
 
-  // Store events ref for worklet access
-  const eventsByIdRef = useRef<Record<string, ComposerEvent>>({});
-  const eventIdsRef = useRef<string[]>([]);
-  eventsByIdRef.current = eventsById;
-  eventIdsRef.current = eventIds;
-
-  // Helper to get events array from current state
   const getEventsArray = (): ComposerEvent[] => {
-    return eventIds.map((id) => eventsById[id]).filter(Boolean) as ComposerEvent[];
+    return eventIds
+      .map((id) => eventsById[id])
+      .filter(Boolean) as ComposerEvent[];
   };
 
-  // ============================================
-  // History functions
-  // ============================================
-
-  const updateHistoryFlags = () => {
-    setCanUndo(historyIndexRef.current > 0);
-    setCanRedo(historyIndexRef.current < historyRef.current.length - 1);
+  const saveToStore = () => {
+    const compositionId = currentCompositionIdRef.current;
+    if (!compositionId) return;
+    const eventsArray = eventIdsRef.current
+      .map((id) => eventsByIdRef.current[id])
+      .filter(Boolean) as ComposerEvent[];
+    updateComposition(compositionId, eventsArray);
   };
 
-  const pushToHistory = (
-    newEventsById: Record<string, ComposerEvent>,
-    newEventIds: string[]
-  ) => {
-    historyRef.current = historyRef.current.slice(
-      0,
-      historyIndexRef.current + 1
-    );
-    historyRef.current.push({
-      eventsById: { ...newEventsById },
-      eventIds: [...newEventIds],
-    });
-
-    if (historyRef.current.length > MAX_HISTORY_SIZE) {
-      historyRef.current.shift();
-    } else {
-      historyIndexRef.current++;
-    }
-
-    updateHistoryFlags();
-  };
-
-  const updateEventsWithHistory = (
+  const updateEvents = (
     newEventsById: Record<string, ComposerEvent>,
     newEventIds: string[]
   ) => {
     setEventsById(newEventsById);
     setEventIds(newEventIds);
-    pushToHistory(newEventsById, newEventIds);
     const eventsArray = newEventIds
       .map((id) => newEventsById[id])
       .filter(Boolean) as ComposerEvent[];
     totalDuration.set(getCompositionDuration(eventsArray));
   };
 
-  // ============================================
-  // Event actions
-  // ============================================
+  const loadComposition = (id: string) => {
+    if (!id) {
+      setEventsById({});
+      setEventIds([]);
+      setSelectedEventId(null);
+      setCurrentCompositionId(null);
+      storeSelectComposition(null);
+      totalDuration.set(0);
+      currentTime.set(0);
+      scrollX.set(0);
+      return;
+    }
+
+    const composition = compositions.find((c) => c.id === id);
+    if (composition) {
+      const newEventsById: Record<string, ComposerEvent> = {};
+      const newEventIds: string[] = [];
+      for (const event of composition.events) {
+        newEventsById[event.id] = event;
+        newEventIds.push(event.id);
+      }
+      setEventsById(newEventsById);
+      setEventIds(newEventIds);
+      setSelectedEventId(null);
+      setCurrentCompositionId(id);
+      storeSelectComposition(id);
+      totalDuration.set(getCompositionDuration(composition.events));
+      currentTime.set(0);
+      scrollX.set(0);
+    }
+  };
+
+  const createAndLoadComposition = (): string => {
+    const newId = storeCreateComposition();
+    setEventsById({});
+    setEventIds([]);
+    setSelectedEventId(null);
+    setCurrentCompositionId(newId);
+    totalDuration.set(0);
+    currentTime.set(0);
+    scrollX.set(0);
+    return newId;
+  };
 
   const addEvent = (type: 'transient' | 'continuous', startTime?: number) => {
     const eventsArray = getEventsArray();
     const duration = getCompositionDuration(eventsArray);
-    
-    // Use provided startTime or default to end of composition
     const eventStartTime = startTime ?? duration;
-    
     const newEvent =
       type === 'transient'
         ? createDefaultTransientEvent(eventStartTime)
         : createDefaultContinuousEvent(eventStartTime);
-
     const newEventsById = { ...eventsById, [newEvent.id]: newEvent };
     const newEventIds = [...eventIds, newEvent.id];
-    updateEventsWithHistory(newEventsById, newEventIds);
+    setEventsById(newEventsById);
+    setEventIds(newEventIds);
+    const updatedEventsArray = newEventIds
+      .map((id) => newEventsById[id])
+      .filter(Boolean) as ComposerEvent[];
+    totalDuration.set(getCompositionDuration(updatedEventsArray));
     setSelectedEventId(newEvent.id);
   };
 
   const updateEvent = (id: string, updates: Partial<ComposerEvent>) => {
     const existingEvent = eventsById[id];
     if (!existingEvent) return;
-
     const updatedEvent = { ...existingEvent, ...updates } as ComposerEvent;
     const newEventsById = { ...eventsById, [id]: updatedEvent };
-    updateEventsWithHistory(newEventsById, eventIds);
+    updateEvents(newEventsById, eventIds);
   };
 
   const deleteEvent = (id: string) => {
     const newEventsById = { ...eventsById };
     delete newEventsById[id];
     const newEventIds = eventIds.filter((eventId) => eventId !== id);
-    updateEventsWithHistory(newEventsById, newEventIds);
-
+    updateEvents(newEventsById, newEventIds);
     if (selectedEventId === id) {
       setSelectedEventId(null);
     }
   };
 
   const clearAllEvents = () => {
-    updateEventsWithHistory({}, []);
+    updateEvents({}, []);
     setSelectedEventId(null);
   };
-
-  // ============================================
-  // Selection actions
-  // ============================================
 
   const selectEvent = (id: string | null) => {
     if (id === null || !eventsById[id]) {
@@ -263,51 +239,11 @@ export function ComposerProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // ============================================
-  // Undo/Redo
-  // ============================================
-
-  const undo = () => {
-    if (historyIndexRef.current > 0) {
-      historyIndexRef.current--;
-      const previousState = historyRef.current[historyIndexRef.current];
-      if (previousState) {
-        setEventsById(previousState.eventsById);
-        setEventIds(previousState.eventIds);
-        const eventsArray = previousState.eventIds
-          .map((id) => previousState.eventsById[id])
-          .filter(Boolean) as ComposerEvent[];
-        totalDuration.set(getCompositionDuration(eventsArray));
-      }
-      updateHistoryFlags();
-    }
-  };
-
-  const redo = () => {
-    if (historyIndexRef.current < historyRef.current.length - 1) {
-      historyIndexRef.current++;
-      const nextState = historyRef.current[historyIndexRef.current];
-      if (nextState) {
-        setEventsById(nextState.eventsById);
-        setEventIds(nextState.eventIds);
-        const eventsArray = nextState.eventIds
-          .map((id) => nextState.eventsById[id])
-          .filter(Boolean) as ComposerEvent[];
-        totalDuration.set(getCompositionDuration(eventsArray));
-      }
-      updateHistoryFlags();
-    }
-  };
-
-  // ============================================
-  // Frame callback for playback
-  // ============================================
-
   const frameCallback = useFrameCallback(() => {
     if (!isPlaying.get()) return;
 
     const now = Date.now();
-    const elapsed = (now - playbackStartTimestamp.get()) / 1000; // seconds
+    const elapsed = (now - playbackStartTimestamp.get()) / 1000;
     const newTime = playbackStartTime.get() + elapsed;
     const maxTime = totalDuration.get();
 
@@ -322,10 +258,6 @@ export function ComposerProvider({ children }: { children: ReactNode }) {
     }
   }, false);
 
-  // ============================================
-  // Playback worklet functions
-  // ============================================
-
   const getEventsArrayFromRefs = (): ComposerEvent[] => {
     'worklet';
     return eventIdsRef.current
@@ -338,11 +270,9 @@ export function ComposerProvider({ children }: { children: ReactNode }) {
     const currentEvents = getEventsArrayFromRefs();
     if (currentEvents.length === 0) return;
 
-    // Convert composer events to haptic events (in milliseconds)
     const hapticEvents = currentEvents.map(composerEventToHapticEvent);
     const hapticCurves = composerEventsToCurves(currentEvents);
 
-    // Trim events from seek position (convert seconds to milliseconds)
     const seekTimeMs = seekTimeSeconds * 1000;
     const { events: trimmedEvents, curves: trimmedCurves } =
       trimHapticDataFromSeekTime(hapticEvents, hapticCurves, seekTimeMs);
@@ -402,63 +332,6 @@ export function ComposerProvider({ children }: { children: ReactNode }) {
     scrollX.set(time * PIXELS_PER_SECOND);
   };
 
-  // ============================================
-  // Composition actions
-  // ============================================
-
-  const saveCompositions = (newCompositions: Composition[]) => {
-    storage.set(STORAGE_KEYS.COMPOSITIONS, JSON.stringify(newCompositions));
-    setCompositions(newCompositions);
-  };
-
-  const saveComposition = (name: string) => {
-    const eventsArray = getEventsArray();
-    const newComposition: Composition = {
-      id: Date.now().toString(),
-      name,
-      createdAt: Date.now(),
-      events: eventsArray,
-    };
-    saveCompositions([...compositions, newComposition]);
-    setSelectedCompositionId(newComposition.id);
-  };
-
-  const loadComposition = (id: string) => {
-    const composition = compositions.find((c) => c.id === id);
-    if (composition) {
-      // Convert array to object format
-      const newEventsById: Record<string, ComposerEvent> = {};
-      const newEventIds: string[] = [];
-      for (const event of composition.events) {
-        newEventsById[event.id] = event;
-        newEventIds.push(event.id);
-      }
-
-      setEventsById(newEventsById);
-      setEventIds(newEventIds);
-      totalDuration.set(getCompositionDuration(composition.events));
-      setSelectedCompositionId(id);
-      setSelectedEventId(null);
-
-      // Reset history
-      historyRef.current = [{ eventsById: newEventsById, eventIds: newEventIds }];
-      historyIndexRef.current = 0;
-      updateHistoryFlags();
-    }
-  };
-
-  const deleteComposition = (id: string) => {
-    const newCompositions = compositions.filter((c) => c.id !== id);
-    saveCompositions(newCompositions);
-    if (selectedCompositionId === id) {
-      setSelectedCompositionId(null);
-    }
-  };
-
-  // ============================================
-  // Import/Export
-  // ============================================
-
   const importEvents = (
     hapticEvents: HapticEvent[],
     _curves?: HapticCurve[]
@@ -471,7 +344,8 @@ export function ComposerProvider({ children }: { children: ReactNode }) {
         event.parameters?.find((p) => p.type === 'intensity')?.value ?? 0.5;
       const sharpness =
         event.parameters?.find((p) => p.type === 'sharpness')?.value ?? 0.5;
-      const id = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+      const id =
+        Date.now().toString() + Math.random().toString(36).substr(2, 9);
 
       if (event.type === 'transient') {
         newEventsById[id] = {
@@ -498,7 +372,7 @@ export function ComposerProvider({ children }: { children: ReactNode }) {
       newEventIds.push(id);
     }
 
-    updateEventsWithHistory(newEventsById, newEventIds);
+    updateEvents(newEventsById, newEventIds);
     setSelectedEventId(null);
   };
 
@@ -515,16 +389,13 @@ export function ComposerProvider({ children }: { children: ReactNode }) {
         eventsById,
         eventIds,
         selectedEventId,
-        compositions,
-        selectedCompositionId,
+        currentCompositionId,
         isPlaying,
         currentTime,
         totalDuration,
         scrollX,
         isUserScrolling,
         frameCallback,
-        canUndo,
-        canRedo,
         addEvent,
         updateEvent,
         deleteEvent,
@@ -532,18 +403,16 @@ export function ComposerProvider({ children }: { children: ReactNode }) {
         selectEvent,
         selectNextEvent,
         selectPreviousEvent,
-        undo,
-        redo,
         startPlayback,
         stopPlayback,
         seekTo,
         onUserScrollStart,
         onUserScrollEnd,
-        saveComposition,
         loadComposition,
-        deleteComposition,
+        createAndLoadComposition,
         importEvents,
         exportEvents,
+        saveToStore,
       }}
     >
       {children}

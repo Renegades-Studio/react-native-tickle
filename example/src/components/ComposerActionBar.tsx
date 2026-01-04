@@ -9,28 +9,22 @@ import { useTheme } from '../contexts/ThemeContext';
 
 interface ComposerActionBarProps {
   isPlaying: SharedValue<boolean>;
-  canUndo: boolean;
-  canRedo: boolean;
+  canPlay: boolean;
   hasSelection: boolean;
   onPlay: () => void;
-  onUndo: () => void;
-  onRedo: () => void;
   onAdd: () => void;
   onDelete: () => void;
-  onMore: () => void;
+  onList: () => void;
 }
 
 export default function ComposerActionBar({
   isPlaying,
-  canUndo,
-  canRedo,
   hasSelection,
+  canPlay,
   onPlay,
-  onUndo,
-  onRedo,
   onAdd,
   onDelete,
-  onMore,
+  onList,
 }: ComposerActionBarProps) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
@@ -53,29 +47,22 @@ export default function ComposerActionBar({
     >
       <View style={[styles.bar, { backgroundColor: colors.background }]}>
         {/* Play/Pause */}
-        <Animated.View style={[styles.buttonContainer, playButtonStyle]}>
+        <Animated.View
+          style={[
+            styles.buttonContainer,
+            !canPlay && { opacity: 0.4 },
+            playButtonStyle,
+          ]}
+        >
           <TouchableOpacity
-            style={styles.buttonTouchable}
+            style={[styles.buttonTouchable]}
             onPress={onPlay}
             activeOpacity={0.7}
+            disabled={!canPlay}
           >
             <PlayPauseIcon isPlaying={isPlaying} />
           </TouchableOpacity>
         </Animated.View>
-
-        {/* Undo */}
-        <TouchableOpacity
-          style={[
-            styles.button,
-            { backgroundColor: colors.blue },
-            !canUndo && { opacity: 0.4 },
-          ]}
-          onPress={onUndo}
-          disabled={!canUndo}
-          activeOpacity={0.7}
-        >
-          <SymbolView name="arrow.uturn.backward" size={22} tintColor="#FFFFFF" />
-        </TouchableOpacity>
 
         {/* Add */}
         <TouchableOpacity
@@ -100,27 +87,13 @@ export default function ComposerActionBar({
           <SymbolView name="trash" size={22} tintColor="#FFFFFF" />
         </TouchableOpacity>
 
-        {/* Redo */}
-        <TouchableOpacity
-          style={[
-            styles.button,
-            { backgroundColor: colors.blue },
-            !canRedo && { opacity: 0.4 },
-          ]}
-          onPress={onRedo}
-          disabled={!canRedo}
-          activeOpacity={0.7}
-        >
-          <SymbolView name="arrow.uturn.forward" size={22} tintColor="#FFFFFF" />
-        </TouchableOpacity>
-
-        {/* More options */}
+        {/* List */}
         <TouchableOpacity
           style={[styles.button, { backgroundColor: '#FF8C32' }]}
-          onPress={onMore}
+          onPress={onList}
           activeOpacity={0.7}
         >
-          <SymbolView name="ellipsis" size={22} tintColor="#FFFFFF" />
+          <SymbolView name="list.bullet" size={22} tintColor="#FFFFFF" />
         </TouchableOpacity>
       </View>
     </View>
@@ -200,4 +173,3 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 });
-
