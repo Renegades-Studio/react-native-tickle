@@ -128,106 +128,6 @@ export const popularCompositions = {
       ],
     },
     {
-      id: 'piano-melody',
-      name: 'Piano Melody',
-      description: 'A gentle musical sequence mimicking piano notes',
-      duration: 3200,
-      events: [
-        {
-          type: 'transient',
-          relativeTime: 0,
-          parameters: [
-            { type: 'intensity', value: 0.6 },
-            { type: 'sharpness', value: 0.7 },
-          ],
-        },
-        {
-          type: 'transient',
-          relativeTime: 400,
-          parameters: [
-            { type: 'intensity', value: 0.7 },
-            { type: 'sharpness', value: 0.6 },
-          ],
-        },
-        {
-          type: 'transient',
-          relativeTime: 800,
-          parameters: [
-            { type: 'intensity', value: 0.8 },
-            { type: 'sharpness', value: 0.5 },
-          ],
-        },
-        {
-          type: 'transient',
-          relativeTime: 1000,
-          parameters: [
-            { type: 'intensity', value: 0.5 },
-            { type: 'sharpness', value: 0.8 },
-          ],
-        },
-        {
-          type: 'transient',
-          relativeTime: 1400,
-          parameters: [
-            { type: 'intensity', value: 0.9 },
-            { type: 'sharpness', value: 0.4 },
-          ],
-        },
-        {
-          type: 'transient',
-          relativeTime: 1600,
-          parameters: [
-            { type: 'intensity', value: 0.7 },
-            { type: 'sharpness', value: 0.6 },
-          ],
-        },
-        {
-          type: 'transient',
-          relativeTime: 2000,
-          parameters: [
-            { type: 'intensity', value: 0.8 },
-            { type: 'sharpness', value: 0.5 },
-          ],
-        },
-        {
-          type: 'transient',
-          relativeTime: 2200,
-          parameters: [
-            { type: 'intensity', value: 0.6 },
-            { type: 'sharpness', value: 0.7 },
-          ],
-        },
-        {
-          type: 'transient',
-          relativeTime: 2600,
-          parameters: [
-            { type: 'intensity', value: 0.9 },
-            { type: 'sharpness', value: 0.3 },
-          ],
-        },
-        {
-          type: 'continuous',
-          relativeTime: 2800,
-          duration: 400,
-          parameters: [
-            { type: 'intensity', value: 0.5 },
-            { type: 'sharpness', value: 0.4 },
-          ],
-        },
-      ],
-      curves: [
-        {
-          type: 'intensity',
-          relativeTime: 2800,
-          controlPoints: [
-            { relativeTime: 0, value: 0.5 },
-            { relativeTime: 200, value: 0.6 },
-            { relativeTime: 400, value: 0.2 },
-          ],
-        },
-      ],
-    },
-    {
       id: 'heartbeat',
       name: 'Heartbeat',
       description: 'Rhythmic double-beat heart pulse pattern',
@@ -299,82 +199,6 @@ export const popularCompositions = {
         },
       ],
       curves: [],
-    },
-    {
-      id: 'ocean-waves',
-      name: 'Ocean Waves',
-      description: 'Gentle rolling waves washing ashore',
-      duration: 4000,
-      events: [
-        {
-          type: 'continuous',
-          relativeTime: 0,
-          duration: 1200,
-          parameters: [
-            { type: 'intensity', value: 0.6 },
-            { type: 'sharpness', value: 0.2 },
-          ],
-        },
-        {
-          type: 'continuous',
-          relativeTime: 1500,
-          duration: 1000,
-          parameters: [
-            { type: 'intensity', value: 0.5 },
-            { type: 'sharpness', value: 0.15 },
-          ],
-        },
-        {
-          type: 'continuous',
-          relativeTime: 2800,
-          duration: 1200,
-          parameters: [
-            { type: 'intensity', value: 0.7 },
-            { type: 'sharpness', value: 0.25 },
-          ],
-        },
-      ],
-      curves: [
-        {
-          type: 'intensity',
-          relativeTime: 0,
-          controlPoints: [
-            { relativeTime: 0, value: 0.1 },
-            { relativeTime: 400, value: 0.5 },
-            { relativeTime: 800, value: 0.6 },
-            { relativeTime: 1200, value: 0.15 },
-          ],
-        },
-        {
-          type: 'intensity',
-          relativeTime: 1500,
-          controlPoints: [
-            { relativeTime: 0, value: 0.1 },
-            { relativeTime: 350, value: 0.4 },
-            { relativeTime: 700, value: 0.5 },
-            { relativeTime: 1000, value: 0.1 },
-          ],
-        },
-        {
-          type: 'intensity',
-          relativeTime: 2800,
-          controlPoints: [
-            { relativeTime: 0, value: 0.15 },
-            { relativeTime: 500, value: 0.6 },
-            { relativeTime: 900, value: 0.7 },
-            { relativeTime: 1200, value: 0.1 },
-          ],
-        },
-        {
-          type: 'sharpness',
-          relativeTime: 0,
-          controlPoints: [
-            { relativeTime: 0, value: 0.1 },
-            { relativeTime: 600, value: 0.25 },
-            { relativeTime: 1200, value: 0.1 },
-          ],
-        },
-      ],
     },
     {
       id: 'success-fanfare',
@@ -616,60 +440,137 @@ export const popularCompositions = {
     {
       id: 'engine-revving',
       name: 'Engine Revving',
-      description: 'Motor vibration building up to full power',
-      duration: 2500,
+      description: 'Realistic engine idle with rev bursts - vroom vroom',
+      duration: 4000,
       events: [
+        // Idle rumble
         {
           type: 'continuous',
           relativeTime: 0,
-          duration: 2000,
+          duration: 800,
           parameters: [
-            { type: 'intensity', value: 0.8 },
+            { type: 'intensity', value: 0.3 },
+            { type: 'sharpness', value: 0.2 },
+          ],
+        },
+        // First rev - VROOM
+        {
+          type: 'continuous',
+          relativeTime: 800,
+          duration: 400,
+          parameters: [
+            { type: 'intensity', value: 0.9 },
             { type: 'sharpness', value: 0.6 },
           ],
         },
+        // Back to idle
         {
           type: 'continuous',
-          relativeTime: 2000,
+          relativeTime: 1200,
           duration: 500,
           parameters: [
-            { type: 'intensity', value: 0.9 },
+            { type: 'intensity', value: 0.35 },
+            { type: 'sharpness', value: 0.25 },
+          ],
+        },
+        // Second rev - VROOM
+        {
+          type: 'continuous',
+          relativeTime: 1700,
+          duration: 500,
+          parameters: [
+            { type: 'intensity', value: 0.95 },
+            { type: 'sharpness', value: 0.65 },
+          ],
+        },
+        // Brief idle
+        {
+          type: 'continuous',
+          relativeTime: 2200,
+          duration: 300,
+          parameters: [
+            { type: 'intensity', value: 0.3 },
+            { type: 'sharpness', value: 0.2 },
+          ],
+        },
+        // Third bigger rev - VROOOOM
+        {
+          type: 'continuous',
+          relativeTime: 2500,
+          duration: 700,
+          parameters: [
+            { type: 'intensity', value: 1.0 },
             { type: 'sharpness', value: 0.7 },
+          ],
+        },
+        // Wind down
+        {
+          type: 'continuous',
+          relativeTime: 3200,
+          duration: 800,
+          parameters: [
+            { type: 'intensity', value: 0.4 },
+            { type: 'sharpness', value: 0.25 },
           ],
         },
       ],
       curves: [
+        // First rev build-up and drop
         {
           type: 'intensity',
-          relativeTime: 0,
+          relativeTime: 800,
           controlPoints: [
-            { relativeTime: 0, value: 0.2 },
-            { relativeTime: 300, value: 0.35 },
-            { relativeTime: 500, value: 0.3 },
-            { relativeTime: 800, value: 0.5 },
-            { relativeTime: 1000, value: 0.45 },
-            { relativeTime: 1300, value: 0.7 },
-            { relativeTime: 1500, value: 0.65 },
-            { relativeTime: 1800, value: 0.85 },
-            { relativeTime: 2000, value: 1.0 },
+            { relativeTime: 0, value: 0.4 },
+            { relativeTime: 150, value: 0.9 },
+            { relativeTime: 300, value: 0.85 },
+            { relativeTime: 400, value: 0.35 },
           ],
         },
+        // Second rev build-up and drop
+        {
+          type: 'intensity',
+          relativeTime: 1700,
+          controlPoints: [
+            { relativeTime: 0, value: 0.4 },
+            { relativeTime: 200, value: 0.95 },
+            { relativeTime: 400, value: 0.9 },
+            { relativeTime: 500, value: 0.3 },
+          ],
+        },
+        // Third big rev - sustain longer
+        {
+          type: 'intensity',
+          relativeTime: 2500,
+          controlPoints: [
+            { relativeTime: 0, value: 0.5 },
+            { relativeTime: 250, value: 1.0 },
+            { relativeTime: 500, value: 0.95 },
+            { relativeTime: 700, value: 0.4 },
+          ],
+        },
+        // Final wind down
+        {
+          type: 'intensity',
+          relativeTime: 3200,
+          controlPoints: [
+            { relativeTime: 0, value: 0.5 },
+            { relativeTime: 400, value: 0.3 },
+            { relativeTime: 800, value: 0.1 },
+          ],
+        },
+        // Sharpness increases with revs
         {
           type: 'sharpness',
           relativeTime: 0,
           controlPoints: [
-            { relativeTime: 0, value: 0.3 },
-            { relativeTime: 1000, value: 0.5 },
-            { relativeTime: 2000, value: 0.7 },
-          ],
-        },
-        {
-          type: 'intensity',
-          relativeTime: 2000,
-          controlPoints: [
-            { relativeTime: 0, value: 1.0 },
-            { relativeTime: 250, value: 0.95 },
-            { relativeTime: 500, value: 0.4 },
+            { relativeTime: 0, value: 0.2 },
+            { relativeTime: 800, value: 0.2 },
+            { relativeTime: 1000, value: 0.6 },
+            { relativeTime: 1200, value: 0.25 },
+            { relativeTime: 1900, value: 0.65 },
+            { relativeTime: 2200, value: 0.2 },
+            { relativeTime: 2800, value: 0.7 },
+            { relativeTime: 3500, value: 0.2 },
           ],
         },
       ],
@@ -1010,90 +911,6 @@ export const popularCompositions = {
       ],
     },
     {
-      id: 'morse-sos',
-      name: 'Morse SOS',
-      description: 'Classic SOS signal in haptic morse code',
-      duration: 3600,
-      events: [
-        {
-          type: 'transient',
-          relativeTime: 0,
-          parameters: [
-            { type: 'intensity', value: 0.8 },
-            { type: 'sharpness', value: 0.7 },
-          ],
-        },
-        {
-          type: 'transient',
-          relativeTime: 200,
-          parameters: [
-            { type: 'intensity', value: 0.8 },
-            { type: 'sharpness', value: 0.7 },
-          ],
-        },
-        {
-          type: 'transient',
-          relativeTime: 400,
-          parameters: [
-            { type: 'intensity', value: 0.8 },
-            { type: 'sharpness', value: 0.7 },
-          ],
-        },
-        {
-          type: 'continuous',
-          relativeTime: 800,
-          duration: 300,
-          parameters: [
-            { type: 'intensity', value: 0.9 },
-            { type: 'sharpness', value: 0.6 },
-          ],
-        },
-        {
-          type: 'continuous',
-          relativeTime: 1300,
-          duration: 300,
-          parameters: [
-            { type: 'intensity', value: 0.9 },
-            { type: 'sharpness', value: 0.6 },
-          ],
-        },
-        {
-          type: 'continuous',
-          relativeTime: 1800,
-          duration: 300,
-          parameters: [
-            { type: 'intensity', value: 0.9 },
-            { type: 'sharpness', value: 0.6 },
-          ],
-        },
-        {
-          type: 'transient',
-          relativeTime: 2400,
-          parameters: [
-            { type: 'intensity', value: 0.8 },
-            { type: 'sharpness', value: 0.7 },
-          ],
-        },
-        {
-          type: 'transient',
-          relativeTime: 2600,
-          parameters: [
-            { type: 'intensity', value: 0.8 },
-            { type: 'sharpness', value: 0.7 },
-          ],
-        },
-        {
-          type: 'transient',
-          relativeTime: 2800,
-          parameters: [
-            { type: 'intensity', value: 0.8 },
-            { type: 'sharpness', value: 0.7 },
-          ],
-        },
-      ],
-      curves: [],
-    },
-    {
       id: 'fireworks',
       name: 'Fireworks',
       description: 'Ascending rockets followed by sparkle explosions',
@@ -1325,175 +1142,6 @@ export const popularCompositions = {
           ],
         },
       ],
-    },
-    {
-      id: 'typing-rhythm',
-      name: 'Typing Rhythm',
-      description: 'Satisfying keyboard typing pattern with varied key presses',
-      duration: 2400,
-      events: [
-        {
-          type: 'transient',
-          relativeTime: 0,
-          parameters: [
-            { type: 'intensity', value: 0.4 },
-            { type: 'sharpness', value: 0.8 },
-          ],
-        },
-        {
-          type: 'transient',
-          relativeTime: 80,
-          parameters: [
-            { type: 'intensity', value: 0.35 },
-            { type: 'sharpness', value: 0.75 },
-          ],
-        },
-        {
-          type: 'transient',
-          relativeTime: 180,
-          parameters: [
-            { type: 'intensity', value: 0.42 },
-            { type: 'sharpness', value: 0.82 },
-          ],
-        },
-        {
-          type: 'transient',
-          relativeTime: 260,
-          parameters: [
-            { type: 'intensity', value: 0.38 },
-            { type: 'sharpness', value: 0.78 },
-          ],
-        },
-        {
-          type: 'transient',
-          relativeTime: 360,
-          parameters: [
-            { type: 'intensity', value: 0.45 },
-            { type: 'sharpness', value: 0.85 },
-          ],
-        },
-        {
-          type: 'transient',
-          relativeTime: 500,
-          parameters: [
-            { type: 'intensity', value: 0.5 },
-            { type: 'sharpness', value: 0.6 },
-          ],
-        },
-        {
-          type: 'transient',
-          relativeTime: 650,
-          parameters: [
-            { type: 'intensity', value: 0.4 },
-            { type: 'sharpness', value: 0.8 },
-          ],
-        },
-        {
-          type: 'transient',
-          relativeTime: 730,
-          parameters: [
-            { type: 'intensity', value: 0.36 },
-            { type: 'sharpness', value: 0.76 },
-          ],
-        },
-        {
-          type: 'transient',
-          relativeTime: 820,
-          parameters: [
-            { type: 'intensity', value: 0.44 },
-            { type: 'sharpness', value: 0.84 },
-          ],
-        },
-        {
-          type: 'transient',
-          relativeTime: 920,
-          parameters: [
-            { type: 'intensity', value: 0.4 },
-            { type: 'sharpness', value: 0.8 },
-          ],
-        },
-        {
-          type: 'transient',
-          relativeTime: 1100,
-          parameters: [
-            { type: 'intensity', value: 0.55 },
-            { type: 'sharpness', value: 0.55 },
-          ],
-        },
-        {
-          type: 'transient',
-          relativeTime: 1300,
-          parameters: [
-            { type: 'intensity', value: 0.42 },
-            { type: 'sharpness', value: 0.82 },
-          ],
-        },
-        {
-          type: 'transient',
-          relativeTime: 1380,
-          parameters: [
-            { type: 'intensity', value: 0.38 },
-            { type: 'sharpness', value: 0.78 },
-          ],
-        },
-        {
-          type: 'transient',
-          relativeTime: 1460,
-          parameters: [
-            { type: 'intensity', value: 0.46 },
-            { type: 'sharpness', value: 0.86 },
-          ],
-        },
-        {
-          type: 'transient',
-          relativeTime: 1560,
-          parameters: [
-            { type: 'intensity', value: 0.4 },
-            { type: 'sharpness', value: 0.8 },
-          ],
-        },
-        {
-          type: 'transient',
-          relativeTime: 1660,
-          parameters: [
-            { type: 'intensity', value: 0.43 },
-            { type: 'sharpness', value: 0.83 },
-          ],
-        },
-        {
-          type: 'transient',
-          relativeTime: 1850,
-          parameters: [
-            { type: 'intensity', value: 0.6 },
-            { type: 'sharpness', value: 0.5 },
-          ],
-        },
-        {
-          type: 'transient',
-          relativeTime: 2050,
-          parameters: [
-            { type: 'intensity', value: 0.4 },
-            { type: 'sharpness', value: 0.8 },
-          ],
-        },
-        {
-          type: 'transient',
-          relativeTime: 2150,
-          parameters: [
-            { type: 'intensity', value: 0.38 },
-            { type: 'sharpness', value: 0.78 },
-          ],
-        },
-        {
-          type: 'transient',
-          relativeTime: 2250,
-          parameters: [
-            { type: 'intensity', value: 0.42 },
-            { type: 'sharpness', value: 0.82 },
-          ],
-        },
-      ],
-      curves: [],
     },
   ],
 } as const;

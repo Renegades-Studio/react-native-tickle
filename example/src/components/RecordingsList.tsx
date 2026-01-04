@@ -99,10 +99,10 @@ export default function RecordingsList({
                 />
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => router.push('/recorder')}
-                style={[styles.addButton, { backgroundColor: colors.blue }]}
+                onPress={() => router.push('/import-modal')}
+                style={[styles.addButton, { backgroundColor: colors.green }]}
               >
-                <SymbolView name="plus" size={24} tintColor="#FFFFFF" />
+                <SymbolView name="folder" size={24} tintColor="#FFFFFF" />
               </TouchableOpacity>
             </View>
           </View>

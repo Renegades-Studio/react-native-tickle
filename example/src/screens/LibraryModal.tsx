@@ -128,7 +128,7 @@ export function LibraryModal() {
       <View
         style={[
           styles.header,
-          { paddingBottom: 16, borderBottomColor: colors.card },
+          { paddingBottom: 30, borderBottomColor: colors.card },
         ]}
       >
         <Text style={[styles.headerTitle, { color: colors.text }]}>
@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
   closeButton: {
     position: 'absolute',
     right: 16,
-    top: 16,
+    top: 0,
     width: 32,
     height: 32,
     borderRadius: 16,
