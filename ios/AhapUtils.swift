@@ -21,12 +21,21 @@ protocol HapticAnimationState {
     var hapticCurves: [CHHapticParameterCurve] { get }
 }
 
+/// Stores the configuration for a continuous player so it can be recreated after engine reinitialization
+struct ContinuousPlayerConfig {
+    let playerId: String
+    let initialIntensity: Float
+    let initialSharpness: Float
+}
+
 class HapticFeedback {
     static let shared = HapticFeedback()
 
     private var engine: CHHapticEngine?
     private var hapticPlayers: [String: CHHapticAdvancedPatternPlayer] = [:]
     private var continuousPlayers: [String: CHHapticAdvancedPatternPlayer] = [:]
+    /// Stores configurations for continuous players so they can be recreated after engine reinitialization
+    private var continuousPlayerConfigs: [String: ContinuousPlayerConfig] = [:]
     private let lock = NSLock()
     
     public var supportsHaptics: Bool {
@@ -40,7 +49,6 @@ class HapticFeedback {
         }
         
         lock.lock()
-        defer { lock.unlock() }
         
         // Clean up existing engine first
         if engine != nil {
@@ -53,6 +61,7 @@ class HapticFeedback {
             engine = try CHHapticEngine()
         } catch let error {
             print("Engine Creation Error: \(error)")
+            lock.unlock()
             return
         }
 
@@ -97,6 +106,19 @@ class HapticFeedback {
             try engine?.start()
         } catch {
             print("Failed to start the engine: \(error)")
+        }
+        
+        // Copy configs while holding the lock, then release before recreating players
+        let configsCopy = Array(continuousPlayerConfigs.values)
+        lock.unlock()
+        
+        // Recreate any continuous players that were registered before engine was destroyed
+        for config in configsCopy {
+            createContinuousPlayerInternal(
+                playerId: config.playerId,
+                initialIntensity: config.initialIntensity,
+                initialSharpness: config.initialSharpness
+            )
         }
     }
 
@@ -194,7 +216,28 @@ class HapticFeedback {
     /// Creates a continuous haptic player with the given ID.
     /// - If a player with this ID already exists, it will be stopped and replaced.
     /// - If the engine is not initialized or device doesn't support haptics, this is a no-op.
+    /// - The player configuration is stored so it can be recreated after engine reinitialization.
     public func createContinuousPlayer(playerId: String, initialIntensity: Float, initialSharpness: Float) {
+        // Store the configuration so we can recreate the player after engine reinitialization
+        let config = ContinuousPlayerConfig(
+            playerId: playerId,
+            initialIntensity: initialIntensity,
+            initialSharpness: initialSharpness
+        )
+        
+        lock.lock()
+        continuousPlayerConfigs[playerId] = config
+        lock.unlock()
+        
+        createContinuousPlayerInternal(
+            playerId: playerId,
+            initialIntensity: initialIntensity,
+            initialSharpness: initialSharpness
+        )
+    }
+    
+    /// Internal method to create a continuous player without storing config (used during recreation)
+    private func createContinuousPlayerInternal(playerId: String, initialIntensity: Float, initialSharpness: Float) {
         lock.lock()
         defer { lock.unlock() }
         
@@ -311,9 +354,13 @@ class HapticFeedback {
     /// Destroys the continuous haptic player and releases resources.
     /// - If the player doesn't exist (not created or already destroyed), this is a safe no-op.
     /// - The player will be stopped if it's currently playing.
+    /// - The player configuration is also removed, so it won't be recreated after engine reinitialization.
     public func destroyContinuousPlayer(playerId: String) {
         lock.lock()
         defer { lock.unlock() }
+        
+        // Remove the stored config so this player won't be recreated after engine reinitialization
+        continuousPlayerConfigs.removeValue(forKey: playerId)
         
         guard let player = continuousPlayers[playerId] else {
             // Player doesn't exist - safe no-op
