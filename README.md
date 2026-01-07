@@ -218,6 +218,27 @@ setHapticsEnabled(false); // Disable all haptics
 setHapticsEnabled(true); // Re-enable haptics
 ```
 
+### System haptics (predefined OS-level feedback)
+
+While the main purpose of this package is to support AHAP-style patterns (transient + continuous haptics with curves), system haptics are also available for completeness. These are simple, predefined OS-level feedback types that don't require pattern definitions. They can be called from the UI thread and don't require the haptic engine to be initialized.
+
+```ts
+import {
+  triggerImpact,
+  triggerNotification,
+  triggerSelection,
+} from 'react-native-ahaps';
+
+// Impact feedback - simulates a physical collision
+triggerImpact('light'); // 'light' | 'medium' | 'heavy' | 'soft' | 'rigid'
+
+// Notification feedback - for alerts and status updates
+triggerNotification('success'); // 'success' | 'warning' | 'error'
+
+// Selection feedback - for picker wheels and toggles
+triggerSelection();
+```
+
 ## API
 
 | Function                                                               | Purpose                                                         |
@@ -234,12 +255,17 @@ setHapticsEnabled(true); // Re-enable haptics
 | `startContinuousPlayer(playerId)` / `stopContinuousPlayer(playerId)`   | Start/stop continuous playback for player                       |
 | `updateContinuousPlayer(playerId, intensityControl, sharpnessControl)` | Update intensity/sharpness for player                           |
 | `destroyContinuousPlayer(playerId)`                                    | Destroy player and release resources                            |
+| `triggerImpact(style)`                                                 | Trigger impact feedback (collision simulation)                  |
+| `triggerNotification(type)`                                            | Trigger notification feedback (alerts/status)                   |
+| `triggerSelection()`                                                   | Trigger selection feedback (pickers/toggles)                    |
 
 ## Types (inputs)
 
-| Type                  | Values                       |
-| --------------------- | ---------------------------- |
-| `HapticParameterType` | `'intensity' \| 'sharpness'` |
+| Type                     | Values                                                |
+| ------------------------ | ----------------------------------------------------- |
+| `HapticParameterType`    | `'intensity' \| 'sharpness'`                          |
+| `HapticImpactStyle`      | `'light' \| 'medium' \| 'heavy' \| 'soft' \| 'rigid'` |
+| `HapticNotificationType` | `'success' \| 'warning' \| 'error'`                   |
 
 | `HapticEventParameter` | Type                  |
 | ---------------------- | --------------------- |

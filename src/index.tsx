@@ -6,6 +6,8 @@ import type {
   HapticCurve,
   HapticEventParameter,
   HapticParameterType,
+  HapticImpactStyle,
+  HapticNotificationType,
 } from './Ahap.nitro';
 
 export type TransientHapticEvent = {
@@ -92,6 +94,63 @@ export function stopContinuousPlayer(playerId: string): void {
 export function destroyContinuousPlayer(playerId: string): void {
   'worklet';
   return boxedAhap.unbox().destroyContinuousPlayer(playerId);
+}
+
+// MARK: - System Haptics (Predefined OS-level feedback)
+
+/**
+ * Triggers an impact haptic with the specified style.
+ * Simulates a physical collision feedback.
+ *
+ * @param style - The intensity style of the impact ('rigid' | 'heavy' | 'medium' | 'light' | 'soft')
+ *
+ * @example
+ * ```ts
+ * // Light tap for subtle UI feedback
+ * triggerImpact('light');
+ *
+ * // Heavy impact for significant actions
+ * triggerImpact('heavy');
+ * ```
+ */
+export function triggerImpact(style: HapticImpactStyle): void {
+  'worklet';
+  return boxedAhap.unbox().triggerImpact(style);
+}
+
+/**
+ * Triggers a notification-style haptic for alerts and status updates.
+ * Use this for communicating outcomes of actions to the user.
+ *
+ * @param type - The notification type ('error' | 'success' | 'warning')
+ *
+ * @example
+ * ```ts
+ * // Success feedback after completing an action
+ * triggerNotification('success');
+ *
+ * // Error feedback when something goes wrong
+ * triggerNotification('error');
+ * ```
+ */
+export function triggerNotification(type: HapticNotificationType): void {
+  'worklet';
+  return boxedAhap.unbox().triggerNotification(type);
+}
+
+/**
+ * Triggers a selection change haptic.
+ * Best used for picker wheels, toggles, and selection changes.
+ *
+ * @example
+ * ```ts
+ * // When user scrolls through picker options
+ * triggerSelection();
+ * ```
+ */
+export function triggerSelection(): void {
+  'worklet';
+  return boxedAhap.unbox().triggerSelection();
 }
 
 // MARK: - Global Haptics Enable/Disable
@@ -238,4 +297,10 @@ export function HapticProvider({ children }: { children: React.ReactNode }) {
 }
 
 export { AhapHybridObject };
-export type { HapticCurve, HapticEventParameter, HapticParameterType };
+export type {
+  HapticCurve,
+  HapticEventParameter,
+  HapticParameterType,
+  HapticImpactStyle,
+  HapticNotificationType,
+};

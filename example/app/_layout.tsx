@@ -24,6 +24,7 @@ export default function RootLayout() {
                   <Stack.Screen name="playground" />
                   <Stack.Screen name="recorder" />
                   <Stack.Screen name="composer" />
+                  <Stack.Screen name="system-haptics" />
                   <Stack.Screen
                     name="import-modal"
                     options={{

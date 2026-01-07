@@ -1,4 +1,5 @@
 import CoreHaptics
+import UIKit
 
 struct AnyHapticAnimationState: HapticAnimationState {
     var hapticEvents: [CHHapticEvent]
@@ -120,5 +121,65 @@ class Ahap: HybridAhapSpec {
     let state = AnyHapticAnimationState(hapticEvents: hapticEvents, hapticCurves: hapticCurves)
     haptics.createHapticPlayers(for: [state])
     haptics.startHapticPlayer(for: state)
+  }
+  
+  // MARK: - System Haptics (Predefined OS-level feedback)
+  
+  func triggerImpact(style: HapticImpactStyle) throws {
+    guard haptics.hapticsEnabled else { return }
+    
+    let feedbackStyle = style.toUIFeedbackStyle()
+    let generator = UIImpactFeedbackGenerator(style: feedbackStyle)
+    generator.prepare()
+    generator.impactOccurred()
+  }
+  
+  func triggerNotification(type: HapticNotificationType) throws {
+    guard haptics.hapticsEnabled else { return }
+    
+    let feedbackType = type.toUIFeedbackType()
+    let generator = UINotificationFeedbackGenerator()
+    generator.prepare()
+    generator.notificationOccurred(feedbackType)
+  }
+  
+  func triggerSelection() throws {
+    guard haptics.hapticsEnabled else { return }
+    
+    let generator = UISelectionFeedbackGenerator()
+    generator.prepare()
+    generator.selectionChanged()
+  }
+}
+
+// MARK: - Type Conversions
+
+extension HapticImpactStyle {
+  func toUIFeedbackStyle() -> UIImpactFeedbackGenerator.FeedbackStyle {
+    switch self {
+    case .rigid:
+      return .rigid
+    case .heavy:
+      return .heavy
+    case .medium:
+      return .medium
+    case .light:
+      return .light
+    case .soft:
+      return .soft
+    }
+  }
+}
+
+extension HapticNotificationType {
+  func toUIFeedbackType() -> UINotificationFeedbackGenerator.FeedbackType {
+    switch self {
+    case .error:
+      return .error
+    case .success:
+      return .success
+    case .warning:
+      return .warning
+    }
   }
 }

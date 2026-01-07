@@ -66,6 +66,20 @@ export function Menu() {
           </Text>
         </TouchableOpacity>
 
+        <TouchableOpacity
+          style={[styles.menuItem, { backgroundColor: colors.card }]}
+          onPress={() => router.push('/system-haptics')}
+        >
+          <Text style={[styles.menuText, { color: colors.text }]}>
+            System Haptics
+          </Text>
+          <Text
+            style={[styles.menuDescription, { color: colors.secondaryText }]}
+          >
+            Test predefined OS-level haptic feedback
+          </Text>
+        </TouchableOpacity>
+
         <View style={[styles.toggleItem, { backgroundColor: colors.card }]}>
           <Text style={[styles.toggleText, { color: colors.text }]}>
             Haptics {hapticsEnabled ? 'Enabled' : 'Disabled'}
