@@ -1,12 +1,14 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Switch } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../contexts/ThemeContext';
+import { useHapticsEnabled } from 'react-native-ahaps';
 
 export function Menu() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
+  const [hapticsEnabled, setHapticsEnabled] = useHapticsEnabled();
 
   return (
     <View
@@ -63,6 +65,17 @@ export function Menu() {
             Record haptics in real-time using touch gestures
           </Text>
         </TouchableOpacity>
+
+        <View style={[styles.toggleItem, { backgroundColor: colors.card }]}>
+          <Text style={[styles.toggleText, { color: colors.text }]}>
+            Haptics {hapticsEnabled ? 'Enabled' : 'Disabled'}
+          </Text>
+          <Switch
+            value={hapticsEnabled}
+            onValueChange={setHapticsEnabled}
+            trackColor={{ false: colors.secondaryText, true: colors.accent }}
+          />
+        </View>
       </View>
     </View>
   );
@@ -91,5 +104,16 @@ const styles = StyleSheet.create({
   },
   menuDescription: {
     fontSize: 16,
+  },
+  toggleItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 24,
+    borderRadius: 16,
+  },
+  toggleText: {
+    fontSize: 18,
+    fontWeight: '600',
   },
 });

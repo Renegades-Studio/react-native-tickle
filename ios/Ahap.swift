@@ -45,6 +45,16 @@ class Ahap: HybridAhapSpec {
   func destroyContinuousPlayer(playerId: String) throws {
     haptics.destroyContinuousPlayer(playerId: playerId)
   }
+  
+  // MARK: - Global Haptics Enable/Disable
+  
+  func setHapticsEnabled(enabled: Bool) throws {
+    haptics.hapticsEnabled = enabled
+  }
+  
+  func getHapticsEnabled() throws -> Bool {
+    return haptics.hapticsEnabled
+  }
 
   
   func startHaptic(events: [HapticEvent], curves: [HapticCurve]) throws {

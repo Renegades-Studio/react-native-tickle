@@ -45,4 +45,7 @@ export interface Ahap
   ): void;
   stopContinuousPlayer(playerId: string): void;
   destroyContinuousPlayer(playerId: string): void;
+
+  setHapticsEnabled(enabled: boolean): void;
+  getHapticsEnabled(): boolean;
 }

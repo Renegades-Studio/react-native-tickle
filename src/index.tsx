@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { AppState } from 'react-native';
 import { NitroModules } from 'react-native-nitro-modules';
 import type {
@@ -92,6 +92,62 @@ export function stopContinuousPlayer(playerId: string): void {
 export function destroyContinuousPlayer(playerId: string): void {
   'worklet';
   return boxedAhap.unbox().destroyContinuousPlayer(playerId);
+}
+
+// MARK: - Global Haptics Enable/Disable
+
+/**
+ * Enable or disable haptics globally. This setting is persisted across app restarts.
+ * When disabled, all haptic functions become no-ops (no haptics will play).
+ * This does not affect engine initialization/destruction.
+ *
+ * @param enabled - Whether haptics should be enabled
+ */
+export function setHapticsEnabled(enabled: boolean): void {
+  'worklet';
+  return boxedAhap.unbox().setHapticsEnabled(enabled);
+}
+
+/**
+ * Get the current global haptics enabled state.
+ * Defaults to true if not previously set.
+ *
+ * @returns Whether haptics are currently enabled
+ */
+export function getHapticsEnabled(): boolean {
+  'worklet';
+  return boxedAhap.unbox().getHapticsEnabled();
+}
+
+/**
+ * Hook to manage the global haptics enabled state.
+ * Provides reactive state and a setter function.
+ *
+ * @returns [isEnabled, setEnabled] - Current state and setter function
+ *
+ * @example
+ * ```tsx
+ * function SettingsScreen() {
+ *   const [hapticsEnabled, setHapticsEnabled] = useHapticsEnabled();
+ *
+ *   return (
+ *     <Switch
+ *       value={hapticsEnabled}
+ *       onValueChange={setHapticsEnabled}
+ *     />
+ *   );
+ * }
+ * ```
+ */
+export function useHapticsEnabled(): [boolean, (enabled: boolean) => void] {
+  const [enabled, setEnabled] = useState(() => getHapticsEnabled());
+
+  const setHapticsEnabledState = useCallback((value: boolean) => {
+    setHapticsEnabled(value);
+    setEnabled(value);
+  }, []);
+
+  return [enabled, setHapticsEnabledState] as const;
 }
 
 /**

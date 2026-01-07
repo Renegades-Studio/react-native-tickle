@@ -192,7 +192,33 @@ export function SomeScreen() {
 }
 ```
 
-## API (tables)
+### Global enable/disable (settings toggle)
+
+Disable haptics globally for users who prefer no haptic feedback. The setting is **persisted** across app restarts. When disabled, all haptic calls become no-ops.
+
+**Using the hook (recommended):**
+
+```tsx
+import { useHapticsEnabled } from 'react-native-ahaps';
+
+function SettingsScreen() {
+  const [hapticsEnabled, setHapticsEnabled] = useHapticsEnabled();
+
+  return <Switch value={hapticsEnabled} onValueChange={setHapticsEnabled} />;
+}
+```
+
+**Manual control:**
+
+```ts
+import { setHapticsEnabled, getHapticsEnabled } from 'react-native-ahaps';
+
+const isEnabled = getHapticsEnabled(); // true by default
+setHapticsEnabled(false); // Disable all haptics
+setHapticsEnabled(true); // Re-enable haptics
+```
+
+## API
 
 | Function                                                               | Purpose                                                         |
 | ---------------------------------------------------------------------- | --------------------------------------------------------------- |
@@ -201,6 +227,8 @@ export function SomeScreen() {
 | `initializeEngine()` / `destroyEngine()`                               | Manual engine lifecycle                                         |
 | `startHaptic(events, curves)`                                          | Play a pattern (transient + continuous events, optional curves) |
 | `stopAllHaptics()`                                                     | Stop any running haptics (useful on unmount/navigation)         |
+| `useHapticsEnabled()`                                                  | Hook for reactive haptics enabled state                         |
+| `setHapticsEnabled(enabled)` / `getHapticsEnabled()`                   | Manual enable/disable toggle (persisted)                        |
 | `useContinuousPlayer(playerId, initialIntensity, initialSharpness)`    | Hook to manage a continuous player lifecycle                    |
 | `createContinuousPlayer(playerId, initialIntensity, initialSharpness)` | Create a continuous player with given ID                        |
 | `startContinuousPlayer(playerId)` / `stopContinuousPlayer(playerId)`   | Start/stop continuous playback for player                       |

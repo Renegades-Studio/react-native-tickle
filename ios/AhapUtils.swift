@@ -30,6 +30,8 @@ struct ContinuousPlayerConfig {
 
 class HapticFeedback {
     static let shared = HapticFeedback()
+    
+    private static let hapticsEnabledKey = "com.ahap.hapticsEnabled"
 
     private var engine: CHHapticEngine?
     private var hapticPlayers: [String: CHHapticAdvancedPatternPlayer] = [:]
@@ -40,6 +42,23 @@ class HapticFeedback {
     
     public var supportsHaptics: Bool {
         return CHHapticEngine.capabilitiesForHardware().supportsHaptics
+    }
+    
+    // MARK: - Global Haptics Enable/Disable
+    
+    /// Returns whether haptics are globally enabled. Persisted in UserDefaults.
+    /// Defaults to true if not previously set.
+    public var hapticsEnabled: Bool {
+        get {
+            // If key doesn't exist, default to true (haptics enabled)
+            if UserDefaults.standard.object(forKey: HapticFeedback.hapticsEnabledKey) == nil {
+                return true
+            }
+            return UserDefaults.standard.bool(forKey: HapticFeedback.hapticsEnabledKey)
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: HapticFeedback.hapticsEnabledKey)
+        }
     }
 
     public func createAndStartHapticEngine() {
@@ -175,6 +194,8 @@ class HapticFeedback {
     }
 
     public func startHapticPlayer<State: HapticAnimationState>(for state: State) {
+        guard hapticsEnabled else { return }
+        
         lock.lock()
         defer { lock.unlock() }
         
@@ -283,7 +304,10 @@ class HapticFeedback {
 
     /// Starts the continuous haptic player with the given ID.
     /// - If the player doesn't exist (not created or already destroyed), this is a safe no-op.
+    /// - If haptics are globally disabled, this is a no-op.
     public func startContinuousPlayer(playerId: String) {
+        guard hapticsEnabled else { return }
+        
         lock.lock()
         defer { lock.unlock() }
         
