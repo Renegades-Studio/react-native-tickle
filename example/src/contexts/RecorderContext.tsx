@@ -310,7 +310,22 @@ export function RecorderProvider({ children }: { children: ReactNode }) {
       seekTime
     );
 
-    startHaptic(events, curves);
+    // Split events into continuous and transient to play them in separate patterns.
+    // This prevents CHHapticParameterCurves (which are pattern-level multipliers)
+    // from affecting transient events - they should play at their recorded intensity.
+    const continuousEvents = events.filter((e) => e.type === 'continuous');
+    const transientEvents = events.filter((e) => e.type === 'transient');
+
+    // Play continuous events with their associated parameter curves
+    if (continuousEvents.length > 0) {
+      startHaptic(continuousEvents, curves);
+    }
+
+    // Play transient events in a separate pattern with NO curves
+    // so they're not affected by continuous intensity/sharpness modulation
+    if (transientEvents.length > 0) {
+      startHaptic(transientEvents, []);
+    }
   };
 
   const startPlayback = () => {

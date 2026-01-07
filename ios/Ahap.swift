@@ -49,33 +49,66 @@ class Ahap: HybridAhapSpec {
   
   func startHaptic(events: [HapticEvent], curves: [HapticCurve]) throws {
     let hapticEvents = events.map { event -> CHHapticEvent in
-    let eventType: CHHapticEvent.EventType = (event.type == .continuous) ? .hapticContinuous : .hapticTransient
-    let parameters = event.parameters.map { parameter -> CHHapticEventParameter in
+      let eventType: CHHapticEvent.EventType = (event.type == .continuous) ? .hapticContinuous : .hapticTransient
+      let parameters = event.parameters.map { parameter -> CHHapticEventParameter in
         let parameterID: CHHapticEvent.ParameterID = (parameter.type == .intensity) ? .hapticIntensity : .hapticSharpness
         return CHHapticEventParameter(parameterID: parameterID, value: Float(parameter.value))
+      }
+      return CHHapticEvent(
+        eventType: eventType,
+        parameters: parameters,
+        relativeTime: event.relativeTime / 1000.0,
+        duration: event.type == .continuous ? (event.duration ?? 1000.0) / 1000.0 : 0
+      )
     }
-    return CHHapticEvent(
-    eventType: eventType,
-    parameters: parameters,
-    relativeTime: event.relativeTime / 1000.0,
-    duration: event.type == .continuous ? (event.duration ?? 1000.0) / 1000.0 : 0
-    )
-}
 
-let hapticCurves = curves.map { curve -> CHHapticParameterCurve in
-    let parameterID: CHHapticDynamicParameter.ID = (curve.type == .intensity) ? .hapticIntensityControl : .hapticSharpnessControl
-    let controlPoints = curve.controlPoints.map { controlPoint -> CHHapticParameterCurve.ControlPoint in
-        return CHHapticParameterCurve.ControlPoint(relativeTime: controlPoint.relativeTime / 1000.0, value: Float(controlPoint.value))
-    }
-    return CHHapticParameterCurve(
+    var hapticCurves: [CHHapticParameterCurve] = []
+    for curve in curves {
+      let parameterID: CHHapticDynamicParameter.ID = (curve.type == .intensity) ? .hapticIntensityControl : .hapticSharpnessControl
+      
+      var controlPoints: [CHHapticParameterCurve.ControlPoint] = []
+      for controlPoint in curve.controlPoints {
+        let point = CHHapticParameterCurve.ControlPoint(
+          relativeTime: controlPoint.relativeTime / 1000.0,
+          value: Float(controlPoint.value)
+        )
+        controlPoints.append(point)
+      }
+      
+      // Find the matching continuous event to get its duration.
+      // The curve's relativeTime should match a continuous event's relativeTime.
+      var matchingEvent: HapticEvent? = nil
+      for event in events {
+        let isContinuous = event.type == .continuous
+        let diff = event.relativeTime - curve.relativeTime
+        let timeDiff = diff < 0 ? -diff : diff
+        if isContinuous && timeDiff < 1 {
+          matchingEvent = event
+          break
+        }
+      }
+      
+      // Add a reset control point at the end of the continuous event.
+      // This ensures hapticIntensityControl/hapticSharpnessControl return to 1.0 (neutral)
+      // so subsequent events (like transients) aren't affected by this curve's final value.
+      if let event = matchingEvent, let duration = event.duration {
+        let resetTime = duration / 1000.0
+        // Only add if it's after the last control point
+        if let lastPoint = controlPoints.last, resetTime > lastPoint.relativeTime {
+          controlPoints.append(CHHapticParameterCurve.ControlPoint(relativeTime: resetTime, value: 1.0))
+        }
+      }
+      
+      let hapticCurve = CHHapticParameterCurve(
         parameterID: parameterID,
         controlPoints: controlPoints,
         relativeTime: curve.relativeTime / 1000.0
-    )
-}
+      )
+      hapticCurves.append(hapticCurve)
+    }
 
-let state = AnyHapticAnimationState(hapticEvents: hapticEvents, hapticCurves: hapticCurves)
-haptics.createHapticPlayers(for: [state])
-haptics.startHapticPlayer(for: state)
+    let state = AnyHapticAnimationState(hapticEvents: hapticEvents, hapticCurves: hapticCurves)
+    haptics.createHapticPlayers(for: [state])
+    haptics.startHapticPlayer(for: state)
   }
 }

@@ -27,15 +27,15 @@ They’re separate because they’re different object types in Core Haptics (eve
 
 ## Usage
 
-### Haptic “provider” (recommended)
+### Haptic "provider" (recommended)
 
-Wrap your app inside `HapticsProvider`. This initializes the engine, creates the continuous player, and automatically destroys the engine when the app goes to background.
+Wrap your app inside `HapticProvider`. This initializes the engine and automatically destroys it when the app goes to background.
 
 ```tsx
-import { HapticsProvider } from 'react-native-ahaps';
+import { HapticProvider } from 'react-native-ahaps';
 
 export function App() {
-  return <HapticsProvider>{/* {Rest of your app} */}</HapticsProvider>;
+  return <HapticProvider>{/* {Rest of your app} */}</HapticProvider>;
 }
 ```
 
@@ -123,7 +123,30 @@ startHaptic(
 
 ### Real-time continuous mode (continuous player)
 
-Use this when you _can’t_ predefine a pattern. You start the player, update it in real time, then stop it.
+Use this when you _can't_ predefine a pattern. You start the player, update it in real time, then stop it.
+
+**Using the hook (recommended):**
+
+```tsx
+import { useContinuousPlayer } from 'react-native-ahaps';
+
+function MyComponent() {
+  const { start, stop, update } = useContinuousPlayer('my-player', 1.0, 0.5);
+
+  const gesture = Gesture.Pan()
+    .onBegin(() => {
+      start();
+    })
+    .onUpdate((e) => {
+      update(e.translationY / 100, 0.5);
+    })
+    .onEnd(() => {
+      stop();
+    });
+}
+```
+
+**Manual control:**
 
 ```ts
 import {
@@ -131,12 +154,16 @@ import {
   startContinuousPlayer,
   updateContinuousPlayer,
   stopContinuousPlayer,
+  destroyContinuousPlayer,
 } from 'react-native-ahaps';
 
-createContinuousPlayer(1.0, 0.5);
-startContinuousPlayer();
-updateContinuousPlayer(0.8, 0.1);
-stopContinuousPlayer();
+const PLAYER_ID = 'my-player';
+
+createContinuousPlayer(PLAYER_ID, 1.0, 0.5);
+startContinuousPlayer(PLAYER_ID);
+updateContinuousPlayer(PLAYER_ID, 0.8, 0.1);
+stopContinuousPlayer(PLAYER_ID);
+destroyContinuousPlayer(PLAYER_ID);
 ```
 
 ### Opt out of the provider (manual engine control)
@@ -167,15 +194,18 @@ export function SomeScreen() {
 
 ## API (tables)
 
-| Function                                                     | Purpose                                                             |
-| ------------------------------------------------------------ | ------------------------------------------------------------------- |
-| `useHapticEngine(options?)`                                  | Initialize engine + continuous player; destroy engine on background |
-| `initializeEngine()` / `destroyEngine()`                     | Manual engine lifecycle                                             |
-| `startHaptic(events, curves)`                                | Play a pattern (transient + continuous events, optional curves)     |
-| `stopAllHaptics()`                                           | Stop any running haptics (useful on unmount/navigation)             |
-| `createContinuousPlayer(initialIntensity, initialSharpness)` | Create the real-time continuous player                              |
-| `startContinuousPlayer()` / `stopContinuousPlayer()`         | Start/stop real-time continuous playback                            |
-| `updateContinuousPlayer(intensityControl, sharpnessControl)` | Update real-time intensity/sharpness                                |
+| Function                                                               | Purpose                                                         |
+| ---------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `HapticProvider`                                                       | Component that initializes engine; destroys on background       |
+| `useHapticEngine()`                                                    | Hook to manage engine lifecycle (used internally by provider)   |
+| `initializeEngine()` / `destroyEngine()`                               | Manual engine lifecycle                                         |
+| `startHaptic(events, curves)`                                          | Play a pattern (transient + continuous events, optional curves) |
+| `stopAllHaptics()`                                                     | Stop any running haptics (useful on unmount/navigation)         |
+| `useContinuousPlayer(playerId, initialIntensity, initialSharpness)`    | Hook to manage a continuous player lifecycle                    |
+| `createContinuousPlayer(playerId, initialIntensity, initialSharpness)` | Create a continuous player with given ID                        |
+| `startContinuousPlayer(playerId)` / `stopContinuousPlayer(playerId)`   | Start/stop continuous playback for player                       |
+| `updateContinuousPlayer(playerId, intensityControl, sharpnessControl)` | Update intensity/sharpness for player                           |
+| `destroyContinuousPlayer(playerId)`                                    | Destroy player and release resources                            |
 
 ## Types (inputs)
 
@@ -212,6 +242,46 @@ export function SomeScreen() {
 | `type`          | `HapticCurveType`           |
 | `relativeTime`  | `number`                    |
 | `controlPoints` | `HapticCurveControlPoint[]` |
+
+## Limitations
+
+### Parameter curves affect all events in a pattern
+
+In CoreHaptics, `CHHapticParameterCurve` uses `hapticIntensityControl` and `hapticSharpnessControl` — these are **pattern-level multipliers**, not per-event modifiers. Any curve you define will multiply the intensity/sharpness of **all events** playing at that moment, including transients.
+
+**Example problem:**
+
+```ts
+startHaptic(
+  [
+    { type: 'continuous', relativeTime: 0, duration: 2000, parameters: [...] },
+    { type: 'transient', relativeTime: 1000, parameters: [{ type: 'intensity', value: 1.0 }, ...] },
+  ],
+  [
+    { type: 'intensity', relativeTime: 0, controlPoints: [
+      { relativeTime: 0, value: 1.0 },
+      { relativeTime: 1000, value: 0.3 },  // At t=1000ms, intensity control = 0.3
+      { relativeTime: 2000, value: 0.3 },
+    ]},
+  ]
+);
+```
+
+The transient at `t=1000ms` has base intensity `1.0`, but the curve sets `intensityControl=0.3` at that moment. **Effective intensity: 1.0 × 0.3 = 0.3**. The transient feels weaker than expected.
+
+**Workaround:** Play continuous and transient events in separate `startHaptic()` calls:
+
+```ts
+// Continuous with curves
+startHaptic(continuousEvents, curves);
+
+// Transients without curves (separate pattern)
+startHaptic(transientEvents, []);
+```
+
+Each call creates an isolated pattern/player — curves from one won't affect events in the other.
+
+> **Note:** The library automatically resets control values to `1.0` at the end of each continuous event, so transients **after** a continuous event finishes are not affected. This limitation only applies to transients **during** a continuous event with active curves.
 
 ## Contributing
 
