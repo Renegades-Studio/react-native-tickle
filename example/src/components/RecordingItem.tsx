@@ -142,7 +142,7 @@ export default function RecordingItem({
             >
               <SymbolView
                 name="square.and.arrow.up"
-                size={16}
+                size={20}
                 tintColor="#FFFFFF"
               />
             </TouchableOpacity>

@@ -73,12 +73,14 @@ export default function RecordingsList({
     );
   };
 
+  const reverseRecordings = [...recordings].reverse();
+
   return (
     <KeyboardStickyView
       style={[styles.container, { backgroundColor: colors.background }]}
     >
       <FlatList
-        data={recordings}
+        data={reverseRecordings}
         keyExtractor={(item) => item.id}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="interactive"
