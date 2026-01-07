@@ -7,6 +7,8 @@ class Ahap : HybridAhapSpec() {
   override val memorySize: Long
     get() = 0L
 
+  private var hapticsEnabled: Boolean = true
+
   override fun startHaptic(events: Array<HapticEvent>, curves: Array<HapticCurve>) {
     // TODO: Android haptics implementation not yet supported
   }
@@ -40,6 +42,30 @@ class Ahap : HybridAhapSpec() {
   }
   
   override fun destroyContinuousPlayer(playerId: String) {
+    // TODO: Android haptics implementation not yet supported
+  }
+
+  // MARK: - Global Haptics Enable/Disable
+
+  override fun setHapticsEnabled(enabled: Boolean) {
+    hapticsEnabled = enabled
+  }
+
+  override fun getHapticsEnabled(): Boolean {
+    return hapticsEnabled
+  }
+
+  // MARK: - System Haptics (Predefined OS-level feedback)
+
+  override fun triggerImpact(style: HapticImpactStyle) {
+    // TODO: Android haptics implementation not yet supported
+  }
+
+  override fun triggerNotification(type: HapticNotificationType) {
+    // TODO: Android haptics implementation not yet supported
+  }
+
+  override fun triggerSelection() {
     // TODO: Android haptics implementation not yet supported
   }
 }
