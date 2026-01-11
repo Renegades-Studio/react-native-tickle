@@ -1,6 +1,6 @@
 {
   "name": "@renegades/react-native-tickle",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Build and fine-tune haptic patterns with real-time previews",
   "main": "./lib/module/index.js",
   "types": "./lib/typescript/src/index.d.ts",
