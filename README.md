@@ -1,3 +1,5 @@
+<img width="1536" height="1024" alt="banner" src="https://github.com/user-attachments/assets/7eaea07c-0813-44d3-8430-347229d54a97" />
+
 # react-native-tickle
 
 AHAP-style haptics (transient + continuous) on top of [Nitro Modules](https://nitro.margelo.com/) — the core functions are **UI-thread friendly** (`'worklet'`).
