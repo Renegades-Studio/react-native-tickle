@@ -8,7 +8,7 @@ AHAP-style haptics (transient + continuous) on top of [Nitro Modules](https://ni
 
 Complete flexibility over iOS haptics with synchronous UI-thread execution.
 
-> iOS only (Core Haptics). Android support could be added in the future, but it’s currently unplanned.
+> iOS only (Core Haptics). Android support could be added in the future, but it's currently unplanned.
 
 ## Installation
 
@@ -18,7 +18,7 @@ npm i @renegades/react-native-tickle react-native-nitro-modules
 
 ## Concepts (what to use when)
 
-- **Transient**: Instant “click/tap” events. No duration — you trigger them at a point in time.
+- **Transient**: Instant "click/tap" events. No duration — you trigger them at a point in time.
 - **Continuous (pattern)**: Time-based patterns you _can_ define ahead of time. You provide **events** (with `duration`) and optionally **curves** (automation over time).
 - **Continuous player (real-time)**: For _unpredictable_ input (gesture position, scroll velocity, real-time data). You create a player once, then **start → update (many times) → stop**.
 
@@ -26,10 +26,10 @@ npm i @renegades/react-native-tickle react-native-nitro-modules
 
 On iOS Core Haptics, a pattern is made of two different building blocks:
 
-- **Events**: things that happen (transient “ticks” or continuous segments) at a `relativeTime`, with base `intensity`/`sharpness`.
-- **Curves**: how parameters (intensity/sharpness) evolve over time via control points, independent of “what event” is currently playing.
+- **Events**: things that happen (transient "ticks" or continuous segments) at a `relativeTime`, with base `intensity`/`sharpness`.
+- **Curves**: how parameters (intensity/sharpness) evolve over time via control points, independent of "what event" is currently playing.
 
-They’re separate because they’re different object types in Core Haptics (events vs parameter curves) and they serve different jobs: **events define the structure**, **curves define the modulation**. You often combine both in one pattern.
+They're separate because they're different object types in Core Haptics (events vs parameter curves) and they serve different jobs: **events define the structure**, **curves define the modulation**. You often combine both in one pattern.
 
 ## Usage
 
@@ -131,8 +131,6 @@ startHaptic(
 
 Use this when you _can't_ predefine a pattern. You start the player, update it in real time, then stop it.
 
-**Using the hook (recommended):**
-
 ```tsx
 import { useContinuousPlayer } from '@renegades/react-native-tickle';
 
@@ -150,38 +148,6 @@ function MyComponent() {
       stop();
     });
 }
-```
-
-**Manual control:**
-
-```ts
-import {
-  createContinuousPlayer,
-  startContinuousPlayer,
-  updateContinuousPlayer,
-  stopContinuousPlayer,
-  destroyContinuousPlayer,
-} from '@renegades/react-native-tickle';
-
-const PLAYER_ID = 'my-player';
-
-createContinuousPlayer(PLAYER_ID, 1.0, 0.5);
-startContinuousPlayer(PLAYER_ID);
-updateContinuousPlayer(PLAYER_ID, 0.8, 0.1);
-stopContinuousPlayer(PLAYER_ID);
-destroyContinuousPlayer(PLAYER_ID);
-```
-
-### Opt out of the provider (manual engine control)
-
-If you don’t want the provider behavior:
-
-```ts
-import { initializeEngine, destroyEngine } from '@renegades/react-native-tickle';
-
-initializeEngine();
-// ...
-destroyEngine();
 ```
 
 ### Stop everything (recommended in screen cleanups)
@@ -202,8 +168,6 @@ export function SomeScreen() {
 
 Disable haptics globally for users who prefer no haptic feedback. The setting is **persisted** across app restarts. When disabled, all haptic calls become no-ops.
 
-**Using the hook (recommended):**
-
 ```tsx
 import { useHapticsEnabled } from '@renegades/react-native-tickle';
 
@@ -212,16 +176,6 @@ function SettingsScreen() {
 
   return <Switch value={hapticsEnabled} onValueChange={setHapticsEnabled} />;
 }
-```
-
-**Manual control:**
-
-```ts
-import { setHapticsEnabled, getHapticsEnabled } from '@renegades/react-native-tickle';
-
-const isEnabled = getHapticsEnabled(); // true by default
-setHapticsEnabled(false); // Disable all haptics
-setHapticsEnabled(true); // Re-enable haptics
 ```
 
 ### System haptics (predefined OS-level feedback)
@@ -244,6 +198,14 @@ triggerNotification('success'); // 'success' | 'warning' | 'error'
 // Selection feedback - for picker wheels and toggles
 triggerSelection();
 ```
+
+### Advanced control
+
+For fine-grained control over the haptic API, you can opt out of the managed hooks and call the underlying functions directly:
+
+- **Engine lifecycle**: `initializeEngine()` / `destroyEngine()` instead of `HapticProvider`
+- **Enable/disable toggle**: `setHapticsEnabled()` / `getHapticsEnabled()` instead of `useHapticsEnabled()`
+- **Continuous player**: `createContinuousPlayer()` / `startContinuousPlayer()` / `updateContinuousPlayer()` / `stopContinuousPlayer()` / `destroyContinuousPlayer()` instead of `useContinuousPlayer()`
 
 ## API
 
