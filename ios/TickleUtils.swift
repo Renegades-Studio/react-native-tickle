@@ -1,5 +1,5 @@
 //
-//  AhapUtils.swift
+//  TickleUtils.swift
 //  Pods
 //
 //  Created by Alireza Hadjar on 9/14/25.
@@ -31,7 +31,7 @@ struct ContinuousPlayerConfig {
 class HapticFeedback {
     static let shared = HapticFeedback()
     
-    private static let hapticsEnabledKey = "com.ahap.hapticsEnabled"
+    private static let hapticsEnabledKey = "com.tickle.hapticsEnabled"
 
     private var engine: CHHapticEngine?
     private var hapticPlayers: [String: CHHapticAdvancedPatternPlayer] = [:]
@@ -264,7 +264,7 @@ class HapticFeedback {
         
         // Guard: Check if engine exists
         guard let engine = engine else {
-            print("[Ahap] Cannot create continuous player '\(playerId)': Engine not initialized. Call initializeEngine() first.")
+            print("[Tickle] Cannot create continuous player '\(playerId)': Engine not initialized. Call initializeEngine() first.")
             return
         }
         
@@ -298,7 +298,7 @@ class HapticFeedback {
             let player = try engine.makeAdvancedPlayer(with: pattern)
             continuousPlayers[playerId] = player
         } catch let error {
-            print("[Ahap] Continuous player '\(playerId)' creation error: \(error)")
+            print("[Tickle] Continuous player '\(playerId)' creation error: \(error)")
         }
     }
 
@@ -320,7 +320,7 @@ class HapticFeedback {
         do {
             try player.start(atTime: CHHapticTimeImmediate)
         } catch let error {
-            print("[Ahap] Error starting continuous player '\(playerId)': \(error)")
+            print("[Tickle] Error starting continuous player '\(playerId)': \(error)")
         }
     }
 
@@ -353,7 +353,7 @@ class HapticFeedback {
         do {
             try player.sendParameters([intensityParameter, sharpnessParameter], atTime: 0)
         } catch let error {
-            print("[Ahap] Dynamic parameter error for player '\(playerId)': \(error)")
+            print("[Tickle] Dynamic parameter error for player '\(playerId)': \(error)")
         }
     }
 
@@ -371,7 +371,7 @@ class HapticFeedback {
         do {
             try player.stop(atTime: CHHapticTimeImmediate)
         } catch let error {
-            print("[Ahap] Error stopping continuous player '\(playerId)': \(error)")
+            print("[Tickle] Error stopping continuous player '\(playerId)': \(error)")
         }
     }
     

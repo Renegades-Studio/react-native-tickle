@@ -12,7 +12,7 @@ struct AnyHapticAnimationState: HapticAnimationState {
 }
 
 
-class Ahap: HybridAhapSpec {
+class Tickle: HybridTickleSpec {
   func stopAllHaptics() throws {
     haptics.stopAllHapticPlayers()
   }

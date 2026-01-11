@@ -1,16 +1,16 @@
 {
-  "cxxNamespace": ["ahap"],
+  "cxxNamespace": ["tickle"],
   "ios": {
-    "iosModuleName": "Ahap"
+    "iosModuleName": "Tickle"
   },
   "android": {
-    "androidNamespace": ["ahap"],
-    "androidCxxLibName": "ahap"
+    "androidNamespace": ["tickle"],
+    "androidCxxLibName": "tickle"
   },
   "autolinking": {
-    "Ahap": {
-      "swift": "Ahap",
-      "kotlin": "Ahap"
+    "Tickle": {
+      "swift": "Tickle",
+      "kotlin": "Tickle"
     }
   },
   "ignorePaths": ["node_modules", "example", "lib"]

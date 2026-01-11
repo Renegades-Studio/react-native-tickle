@@ -1,6 +1,6 @@
 #include <jni.h>
-#include "ahapOnLoad.hpp"
+#include "tickleOnLoad.hpp"
 
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void*) {
-  return margelo::nitro::ahap::initialize(vm);
+  return margelo::nitro::tickle::initialize(vm);
 }

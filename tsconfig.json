@@ -2,7 +2,7 @@
   "compilerOptions": {
     "rootDir": ".",
     "paths": {
-      "react-native-ahaps": ["./src/index"]
+      "react-native-tickle": ["./src/index"]
     },
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,

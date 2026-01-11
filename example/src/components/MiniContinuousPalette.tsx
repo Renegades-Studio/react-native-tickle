@@ -8,7 +8,7 @@ import Animated, {
   clamp,
   type SharedValue,
 } from 'react-native-reanimated';
-import { useContinuousPlayer } from 'react-native-ahaps';
+import { useContinuousPlayer } from 'react-native-tickle';
 import { useTheme } from '../contexts/ThemeContext';
 
 const TOUCH_INDICATOR_SIZE = 30;

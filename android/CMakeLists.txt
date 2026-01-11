@@ -1,7 +1,7 @@
-project(ahap)
+project(tickle)
 cmake_minimum_required(VERSION 3.9.0)
 
-set(PACKAGE_NAME ahap)
+set(PACKAGE_NAME tickle)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_CXX_STANDARD 20)
 
@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD 20)
 add_library(${PACKAGE_NAME} SHARED src/main/cpp/cpp-adapter.cpp)
 
 # Add Nitrogen specs :)
-include(${CMAKE_SOURCE_DIR}/../nitrogen/generated/android/ahap+autolinking.cmake)
+include(${CMAKE_SOURCE_DIR}/../nitrogen/generated/android/tickle+autolinking.cmake)
 
 # Set up local includes
 include_directories("src/main/cpp" "../cpp")

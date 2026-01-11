@@ -39,7 +39,7 @@ export type HapticCurve = {
   relativeTime: number;
 };
 
-export interface Ahap
+export interface Tickle
   extends HybridObject<{ ios: 'swift'; android: 'kotlin' }> {
   startHaptic(events: HapticEvent[], curves: HapticCurve[]): void;
   stopAllHaptics(): void;

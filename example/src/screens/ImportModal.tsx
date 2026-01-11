@@ -17,7 +17,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { recordedHapticSchema } from '../schemas/recordingSchema';
 import { ZodError } from 'zod';
 import { hapticEventsToRecordingEvents } from '../utils/hapticPlayback';
-import type { HapticEvent } from 'react-native-ahaps';
+import type { HapticEvent } from 'react-native-tickle';
 
 const getDuration = (events: HapticEvent[]) => {
   return events.reduce((maxTime, event) => {
@@ -273,4 +273,3 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
 });
-

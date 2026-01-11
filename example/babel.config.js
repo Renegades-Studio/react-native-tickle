@@ -11,7 +11,7 @@ module.exports = function (api) {
           extensions: ['.tsx', '.ts', '.js', '.json'],
           alias: {
             // For development, we want to alias the library to the source
-            'react-native-ahaps': path.join(
+            'react-native-tickle': path.join(
               __dirname,
               '..',
               'src',

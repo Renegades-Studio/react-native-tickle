@@ -11,8 +11,8 @@ import {
   type SharedValue,
   type FrameCallback,
 } from 'react-native-reanimated';
-import { startHaptic, stopAllHaptics } from 'react-native-ahaps';
-import type { HapticEvent, HapticCurve } from 'react-native-ahaps';
+import { startHaptic, stopAllHaptics } from 'react-native-tickle';
+import type { HapticEvent, HapticCurve } from 'react-native-tickle';
 import {
   type ComposerEvent,
   createDefaultTransientEvent,
@@ -52,7 +52,10 @@ interface ComposerContextValue {
   onUserScrollEnd: () => void;
   loadComposition: (id: string) => void;
   createAndLoadComposition: () => string;
-  importAndLoadComposition: (name: string, composerEvents: ComposerEvent[]) => string;
+  importAndLoadComposition: (
+    name: string,
+    composerEvents: ComposerEvent[]
+  ) => string;
   importEvents: (hapticEvents: HapticEvent[], curves?: HapticCurve[]) => void;
   exportEvents: () => { events: HapticEvent[]; curves: HapticCurve[] };
   saveToStore: () => void;
@@ -171,7 +174,8 @@ export function ComposerProvider({ children }: { children: ReactNode }) {
     composerEvents: ComposerEvent[]
   ): string => {
     // Import to store and get the new ID
-    const storeImportComposition = useCompositionsStore.getState().importComposition;
+    const storeImportComposition =
+      useCompositionsStore.getState().importComposition;
     const newId = storeImportComposition(name, composerEvents);
 
     // Directly load the events into context (don't look up from store)

@@ -2,13 +2,13 @@ import { useEffect, useState, useCallback } from 'react';
 import { AppState } from 'react-native';
 import { NitroModules } from 'react-native-nitro-modules';
 import type {
-  Ahap,
+  Tickle,
   HapticCurve,
   HapticEventParameter,
   HapticParameterType,
   HapticImpactStyle,
   HapticNotificationType,
-} from './Ahap.nitro';
+} from './Tickle.nitro';
 
 export type TransientHapticEvent = {
   type: 'transient';
@@ -25,9 +25,9 @@ export type ContinuousHapticEvent = {
 
 export type HapticEvent = TransientHapticEvent | ContinuousHapticEvent;
 
-const AhapHybridObject = NitroModules.createHybridObject<Ahap>('Ahap');
+const TickleHybridObject = NitroModules.createHybridObject<Tickle>('Tickle');
 
-const boxedAhap = NitroModules.box(AhapHybridObject);
+const boxedTickle = NitroModules.box(TickleHybridObject);
 
 export function startHaptic(
   events: HapticEvent[],
@@ -35,25 +35,25 @@ export function startHaptic(
 ): void {
   'worklet';
 
-  return boxedAhap.unbox().startHaptic(events, curves);
+  return boxedTickle.unbox().startHaptic(events, curves);
 }
 
 export function stopAllHaptics(): void {
   'worklet';
 
-  return boxedAhap.unbox().stopAllHaptics();
+  return boxedTickle.unbox().stopAllHaptics();
 }
 
 export function initializeEngine(): void {
   'worklet';
 
-  return boxedAhap.unbox().initializeEngine();
+  return boxedTickle.unbox().initializeEngine();
 }
 
 export function destroyEngine(): void {
   'worklet';
 
-  return boxedAhap.unbox().destroyEngine();
+  return boxedTickle.unbox().destroyEngine();
 }
 
 export function createContinuousPlayer(
@@ -63,7 +63,7 @@ export function createContinuousPlayer(
 ): void {
   'worklet';
 
-  return boxedAhap
+  return boxedTickle
     .unbox()
     .createContinuousPlayer(playerId, initialIntensity, initialSharpness);
 }
@@ -71,7 +71,7 @@ export function createContinuousPlayer(
 export function startContinuousPlayer(playerId: string): void {
   'worklet';
 
-  return boxedAhap.unbox().startContinuousPlayer(playerId);
+  return boxedTickle.unbox().startContinuousPlayer(playerId);
 }
 
 export function updateContinuousPlayer(
@@ -81,19 +81,19 @@ export function updateContinuousPlayer(
 ): void {
   'worklet';
 
-  return boxedAhap
+  return boxedTickle
     .unbox()
     .updateContinuousPlayer(playerId, intensityControl, sharpnessControl);
 }
 
 export function stopContinuousPlayer(playerId: string): void {
   'worklet';
-  return boxedAhap.unbox().stopContinuousPlayer(playerId);
+  return boxedTickle.unbox().stopContinuousPlayer(playerId);
 }
 
 export function destroyContinuousPlayer(playerId: string): void {
   'worklet';
-  return boxedAhap.unbox().destroyContinuousPlayer(playerId);
+  return boxedTickle.unbox().destroyContinuousPlayer(playerId);
 }
 
 // MARK: - System Haptics (Predefined OS-level feedback)
@@ -115,7 +115,7 @@ export function destroyContinuousPlayer(playerId: string): void {
  */
 export function triggerImpact(style: HapticImpactStyle): void {
   'worklet';
-  return boxedAhap.unbox().triggerImpact(style);
+  return boxedTickle.unbox().triggerImpact(style);
 }
 
 /**
@@ -135,7 +135,7 @@ export function triggerImpact(style: HapticImpactStyle): void {
  */
 export function triggerNotification(type: HapticNotificationType): void {
   'worklet';
-  return boxedAhap.unbox().triggerNotification(type);
+  return boxedTickle.unbox().triggerNotification(type);
 }
 
 /**
@@ -150,7 +150,7 @@ export function triggerNotification(type: HapticNotificationType): void {
  */
 export function triggerSelection(): void {
   'worklet';
-  return boxedAhap.unbox().triggerSelection();
+  return boxedTickle.unbox().triggerSelection();
 }
 
 // MARK: - Global Haptics Enable/Disable
@@ -164,7 +164,7 @@ export function triggerSelection(): void {
  */
 export function setHapticsEnabled(enabled: boolean): void {
   'worklet';
-  return boxedAhap.unbox().setHapticsEnabled(enabled);
+  return boxedTickle.unbox().setHapticsEnabled(enabled);
 }
 
 /**
@@ -175,7 +175,7 @@ export function setHapticsEnabled(enabled: boolean): void {
  */
 export function getHapticsEnabled(): boolean {
   'worklet';
-  return boxedAhap.unbox().getHapticsEnabled();
+  return boxedTickle.unbox().getHapticsEnabled();
 }
 
 /**
@@ -296,7 +296,7 @@ export function HapticProvider({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-export { AhapHybridObject };
+export { TickleHybridObject };
 export type {
   HapticCurve,
   HapticEventParameter,

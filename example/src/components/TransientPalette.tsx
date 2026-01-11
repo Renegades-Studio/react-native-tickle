@@ -7,7 +7,7 @@ import Animated, {
   withSequence,
   useDerivedValue,
 } from 'react-native-reanimated';
-import { startHaptic } from 'react-native-ahaps';
+import { startHaptic } from 'react-native-tickle';
 import type { AnimatedTimeoutID } from '../hooks/useAnimatedTimeout';
 import type { AnimatedIntervalID } from '../hooks/useAnimatedInterval';
 import {

@@ -8,7 +8,7 @@ import {
   triggerSelection,
   type HapticImpactStyle,
   type HapticNotificationType,
-} from 'react-native-ahaps';
+} from 'react-native-tickle';
 
 const IMPACT_STYLES: HapticImpactStyle[] = [
   'light',
@@ -54,7 +54,9 @@ export const SystemHaptics = () => {
         <Text style={[styles.sectionTitle, { color: colors.text }]}>
           Impact Feedback
         </Text>
-        <Text style={[styles.sectionDescription, { color: colors.secondaryText }]}>
+        <Text
+          style={[styles.sectionDescription, { color: colors.secondaryText }]}
+        >
           Simulates a physical collision
         </Text>
 
@@ -66,9 +68,7 @@ export const SystemHaptics = () => {
                 styles.pickerItem,
                 {
                   backgroundColor:
-                    selectedImpactStyle === style
-                      ? colors.blue
-                      : colors.card,
+                    selectedImpactStyle === style ? colors.blue : colors.card,
                 },
               ]}
               onPress={() => setSelectedImpactStyle(style)}
@@ -101,7 +101,9 @@ export const SystemHaptics = () => {
         <Text style={[styles.sectionTitle, { color: colors.text }]}>
           Notification Feedback
         </Text>
-        <Text style={[styles.sectionDescription, { color: colors.secondaryText }]}>
+        <Text
+          style={[styles.sectionDescription, { color: colors.secondaryText }]}
+        >
           For alerts and status updates
         </Text>
 
@@ -118,8 +120,8 @@ export const SystemHaptics = () => {
                       ? type === 'success'
                         ? colors.green
                         : type === 'warning'
-                          ? '#FF9500'
-                          : colors.accent
+                        ? '#FF9500'
+                        : colors.accent
                       : colors.card,
                 },
               ]}
@@ -150,8 +152,8 @@ export const SystemHaptics = () => {
                 selectedNotificationType === 'success'
                   ? colors.green
                   : selectedNotificationType === 'warning'
-                    ? '#FF9500'
-                    : colors.accent,
+                  ? '#FF9500'
+                  : colors.accent,
             },
           ]}
           onPress={() => triggerNotification(selectedNotificationType)}
@@ -165,7 +167,9 @@ export const SystemHaptics = () => {
         <Text style={[styles.sectionTitle, { color: colors.text }]}>
           Selection Feedback
         </Text>
-        <Text style={[styles.sectionDescription, { color: colors.secondaryText }]}>
+        <Text
+          style={[styles.sectionDescription, { color: colors.secondaryText }]}
+        >
           For picker wheels and toggles
         </Text>
 
@@ -237,4 +241,3 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
-

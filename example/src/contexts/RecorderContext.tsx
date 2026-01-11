@@ -6,8 +6,8 @@ import {
   type FrameCallback,
 } from 'react-native-reanimated';
 import type { RecordedHaptic, RecordingEvent } from '../types/recording';
-import type { HapticEvent, HapticCurve } from 'react-native-ahaps';
-import { startHaptic, stopAllHaptics } from 'react-native-ahaps';
+import type { HapticEvent, HapticCurve } from 'react-native-tickle';
+import { startHaptic, stopAllHaptics } from 'react-native-tickle';
 import { trimHapticDataFromSeekTime } from '../utils/hapticPlayback';
 import { PIXELS_PER_MILLISECOND } from '../components/RecordingTimeline';
 import { scheduleOnRN } from 'react-native-worklets';

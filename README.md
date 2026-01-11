@@ -1,4 +1,4 @@
-# react-native-ahaps
+# react-native-tickle
 
 AHAP-style haptics (transient + continuous) on top of [Nitro Modules](https://nitro.margelo.com/) — the core functions are **UI-thread friendly** (`'worklet'`).
 
@@ -7,7 +7,7 @@ AHAP-style haptics (transient + continuous) on top of [Nitro Modules](https://ni
 ## Installation
 
 ```sh
-npm i react-native-ahaps react-native-nitro-modules
+npm i react-native-tickle react-native-nitro-modules
 ```
 
 ## Concepts (what to use when)
@@ -32,7 +32,7 @@ They’re separate because they’re different object types in Core Haptics (eve
 Wrap your app inside `HapticProvider`. This initializes the engine and automatically destroys it when the app goes to background.
 
 ```tsx
-import { HapticProvider } from 'react-native-ahaps';
+import { HapticProvider } from 'react-native-tickle';
 
 export function App() {
   return <HapticProvider>{/* {Rest of your app} */}</HapticProvider>;
@@ -44,7 +44,7 @@ export function App() {
 Play a transient:
 
 ```ts
-import { startHaptic } from 'react-native-ahaps';
+import { startHaptic } from 'react-native-tickle';
 
 startHaptic(
   [
@@ -64,7 +64,7 @@ startHaptic(
 Play a continuous pattern (events + curves together):
 
 ```ts
-import { startHaptic } from 'react-native-ahaps';
+import { startHaptic } from 'react-native-tickle';
 
 startHaptic(
   [
@@ -95,7 +95,7 @@ startHaptic(
 Combine transient + continuous in one pattern:
 
 ```ts
-import { startHaptic } from 'react-native-ahaps';
+import { startHaptic } from 'react-native-tickle';
 
 startHaptic(
   [
@@ -128,7 +128,7 @@ Use this when you _can't_ predefine a pattern. You start the player, update it i
 **Using the hook (recommended):**
 
 ```tsx
-import { useContinuousPlayer } from 'react-native-ahaps';
+import { useContinuousPlayer } from 'react-native-tickle';
 
 function MyComponent() {
   const { start, stop, update } = useContinuousPlayer('my-player', 1.0, 0.5);
@@ -155,7 +155,7 @@ import {
   updateContinuousPlayer,
   stopContinuousPlayer,
   destroyContinuousPlayer,
-} from 'react-native-ahaps';
+} from 'react-native-tickle';
 
 const PLAYER_ID = 'my-player';
 
@@ -171,7 +171,7 @@ destroyContinuousPlayer(PLAYER_ID);
 If you don’t want the provider behavior:
 
 ```ts
-import { initializeEngine, destroyEngine } from 'react-native-ahaps';
+import { initializeEngine, destroyEngine } from 'react-native-tickle';
 
 initializeEngine();
 // ...
@@ -183,7 +183,7 @@ destroyEngine();
 Call `stopAllHaptics()` in your cleanup functions to terminate any ongoing continuous haptics. This prevents haptics from bleeding through to the next screen when navigating.
 
 ```ts
-import { stopAllHaptics } from 'react-native-ahaps';
+import { stopAllHaptics } from 'react-native-tickle';
 import { useEffect } from 'react';
 
 export function SomeScreen() {
@@ -199,7 +199,7 @@ Disable haptics globally for users who prefer no haptic feedback. The setting is
 **Using the hook (recommended):**
 
 ```tsx
-import { useHapticsEnabled } from 'react-native-ahaps';
+import { useHapticsEnabled } from 'react-native-tickle';
 
 function SettingsScreen() {
   const [hapticsEnabled, setHapticsEnabled] = useHapticsEnabled();
@@ -211,7 +211,7 @@ function SettingsScreen() {
 **Manual control:**
 
 ```ts
-import { setHapticsEnabled, getHapticsEnabled } from 'react-native-ahaps';
+import { setHapticsEnabled, getHapticsEnabled } from 'react-native-tickle';
 
 const isEnabled = getHapticsEnabled(); // true by default
 setHapticsEnabled(false); // Disable all haptics
@@ -227,7 +227,7 @@ import {
   triggerImpact,
   triggerNotification,
   triggerSelection,
-} from 'react-native-ahaps';
+} from 'react-native-tickle';
 
 // Impact feedback - simulates a physical collision
 triggerImpact('light'); // 'light' | 'medium' | 'heavy' | 'soft' | 'rigid'

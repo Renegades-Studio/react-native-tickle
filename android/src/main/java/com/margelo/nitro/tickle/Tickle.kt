@@ -1,9 +1,9 @@
-package com.margelo.nitro.ahap
+package com.margelo.nitro.tickle
   
 import com.facebook.proguard.annotations.DoNotStrip
 
 @DoNotStrip
-class Ahap : HybridAhapSpec() {
+class Tickle : HybridTickleSpec() {
   override val memorySize: Long
     get() = 0L
 

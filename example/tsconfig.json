@@ -2,7 +2,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "react-native-ahaps": ["../src/index.tsx"]
+      "react-native-tickle": ["../src/index.tsx"]
     },
     "verbatimModuleSyntax": true,
     "noUnusedLocals": true,
