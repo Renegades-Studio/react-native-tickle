@@ -2,6 +2,10 @@
 
 AHAP-style haptics (transient + continuous) on top of [Nitro Modules](https://nitro.margelo.com/) — the core functions are **UI-thread friendly** (`'worklet'`).
 
+## Why this package?
+
+Complete flexibility over iOS haptics with synchronous UI-thread execution.
+
 > iOS only (Core Haptics). Android support could be added in the future, but it’s currently unplanned.
 
 ## Installation
