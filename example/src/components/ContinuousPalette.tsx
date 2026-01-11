@@ -7,7 +7,7 @@ import Animated, {
   useDerivedValue,
   clamp,
 } from 'react-native-reanimated';
-import { useContinuousPlayer } from 'react-native-tickle';
+import { useContinuousPlayer } from '@renegades/react-native-tickle';
 import Header from './Header';
 import Footer from './Footer';
 

@@ -8,7 +8,7 @@ import Animated, {
   withSequence,
   type SharedValue,
 } from 'react-native-reanimated';
-import { startHaptic } from 'react-native-tickle';
+import { startHaptic } from '@renegades/react-native-tickle';
 import { useTheme } from '../contexts/ThemeContext';
 
 const TOUCH_INDICATOR_SIZE = 30;

@@ -15,7 +15,7 @@ import { useRecorder } from '../contexts/RecorderContext';
 import type { ComposerEvent } from '../types/composer';
 import type { RecordedHaptic } from '../types/recording';
 import { hapticEventsToRecordingEvents } from '../utils/hapticPlayback';
-import type { HapticEvent } from 'react-native-tickle';
+import type { HapticEvent } from '@renegades/react-native-tickle';
 import { recordedHapticSchema } from '../schemas/recordingSchema';
 
 const getDuration = (events: HapticEvent[]) => {

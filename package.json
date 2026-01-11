@@ -1,5 +1,5 @@
 {
-  "name": "react-native-tickle",
+  "name": "@renegades/react-native-tickle",
   "version": "0.1.0",
   "description": "Build and fine-tune haptic patterns with real-time previews",
   "main": "./lib/module/index.js",

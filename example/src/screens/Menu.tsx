@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Switch } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../contexts/ThemeContext';
-import { useHapticsEnabled } from 'react-native-tickle';
+import { useHapticsEnabled } from '@renegades/react-native-tickle';
 
 export function Menu() {
   const router = useRouter();

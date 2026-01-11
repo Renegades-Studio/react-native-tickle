@@ -2,7 +2,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "react-native-tickle": ["../src/index.tsx"]
+      "@renegades/react-native-tickle": ["../src/index.tsx"]
     },
     "verbatimModuleSyntax": true,
     "noUnusedLocals": true,

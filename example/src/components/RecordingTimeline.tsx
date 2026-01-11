@@ -8,7 +8,7 @@ import Animated, {
   useSharedValue,
   type SharedValue,
 } from 'react-native-reanimated';
-import { startHaptic } from 'react-native-tickle';
+import { startHaptic } from '@renegades/react-native-tickle';
 import type { RecordingEvent } from '../types/recording';
 import { useTheme } from '../contexts/ThemeContext';
 

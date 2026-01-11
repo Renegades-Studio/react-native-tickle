@@ -9,7 +9,7 @@ import Animated, {
   type SharedValue,
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { startHaptic } from 'react-native-tickle';
+import { startHaptic } from '@renegades/react-native-tickle';
 import type { ComposerEvent } from '../types/composer';
 import { useTheme } from '../contexts/ThemeContext';
 import { scheduleOnRN } from 'react-native-worklets';
