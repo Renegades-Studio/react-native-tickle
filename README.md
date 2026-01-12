@@ -169,9 +169,9 @@ function MyComponent() {
 }
 ```
 
-### Stop everything (recommended in screen cleanups)
+### Stop everything
 
-Call `stopAllHaptics()` in your cleanup functions to terminate any ongoing continuous haptics. This prevents haptics from bleeding through to the next screen when navigating.
+If users can navigate away from a screen while haptics are still playing, call `stopAllHaptics()` in your cleanup to stop them.
 
 ```ts
 import { stopAllHaptics } from '@renegades/react-native-tickle';
@@ -199,7 +199,7 @@ function SettingsScreen() {
 
 ### System haptics (predefined OS-level feedback)
 
-While the main purpose of this package is to support AHAP-style patterns (transient + continuous haptics with curves), system haptics are also available for completeness. These are simple, predefined OS-level feedback types that don't require pattern definitions. They can be called from the UI thread and don't require the haptic engine to be initialized.
+While the main purpose of this package is to support AHAP-style patterns (transient + continuous haptics with curves), system haptics are also available for completeness. These are simple, predefined OS-level feedback types that don't require pattern definitions. These methods are also UI-thread friendly.
 
 ```ts
 import {
