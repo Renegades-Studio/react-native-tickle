@@ -1,4 +1,4 @@
-<img width="1536" height="1024" alt="banner" src="https://github.com/user-attachments/assets/7eaea07c-0813-44d3-8430-347229d54a97" />
+<img width="1536" height="1024" alt="banner" src="https://github.com/user-attachments/assets/61f1f3bf-24dc-4e0d-ba6a-4dce3a548c96" />
 
 # @renegades/react-native-tickle
 
@@ -30,6 +30,25 @@ On iOS Core Haptics, a pattern is made of two different building blocks:
 - **Curves**: how parameters (intensity/sharpness) evolve over time via control points, independent of "what event" is currently playing.
 
 They're separate because they're different object types in Core Haptics (events vs parameter curves) and they serve different jobs: **events define the structure**, **curves define the modulation**. You often combine both in one pattern.
+
+## Haptix Studio
+
+<table>
+<tr>
+<td>
+<img src="https://github.com/user-attachments/assets/9a0edcfa-37ee-440d-9ae3-48fdcce59780" alt="Haptix Studio" width="280" />
+</td>
+<td>
+
+Try out **Haptix Studio** to see what's possible with haptics.
+
+Play with continuous patterns and real-time updates, then export your creations directly into code.
+
+[Download on Test Flight](https://testflight.apple.com/join/HJn3mbb3)
+
+</td>
+</tr>
+</table>
 
 ## Usage
 
