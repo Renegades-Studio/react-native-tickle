@@ -9,7 +9,7 @@
     "start": "expo start",
     "build:android": "react-native build-android --extra-params \"--no-daemon --console=plain -PreactNativeArchitectures=arm64-v8a\"",
     "build:ios": "react-native build-ios --mode Debug",
-    "preinstall": "cd .. && bun install && cd example"
+    "preinstall": "cd .. && bun install && bun --yes nitrogen && cd example"
   },
   "dependencies": {
     "semver": "^7.6.0",

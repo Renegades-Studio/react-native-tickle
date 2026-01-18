@@ -173,6 +173,26 @@ function MyComponent() {
 
 If users can navigate away from a screen while haptics are still playing, call `stopAllHaptics()` in your cleanup to stop them.
 
+You can use the `beforeRemove` event of your navigation library to do it globally for all screens or particular screen blurs. Here's how to do it with expo router:
+
+```tsx
+<Stack
+  screenListeners={() => ({
+    beforeRemove: () => {
+      stopAllHaptics()
+    },
+  })}
+/>
+// Or
+<Stack.Screen
+  listeners={() => ({
+    beforeRemove: () => {
+      stopAllHaptics()
+    },
+  })}
+/>
+```
+
 ```ts
 import { stopAllHaptics } from '@renegades/react-native-tickle';
 import { useEffect } from 'react';
