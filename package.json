@@ -1,6 +1,6 @@
 {
   "name": "@renegades/react-native-tickle",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Build and fine-tune haptic patterns with real-time previews",
   "main": "./lib/module/index.js",
   "types": "./lib/typescript/src/index.d.ts",
@@ -34,9 +34,8 @@
     "!**/.*"
   ],
   "scripts": {
-    "postinstall": "bash scripts/postinstall.sh",
     "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
-    "prepare": "bob build",
+    "prepare": "bun --yes nitrogen && bob build",
     "nitrogen": "nitrogen",
     "typecheck": "tsc",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
@@ -99,7 +98,7 @@
   "peerDependencies": {
     "react": "*",
     "react-native": "*",
-    "react-native-nitro-modules": "^0.32.0"
+    "react-native-nitro-modules": "*"
   },
   "packageManager": "bun@1.1.38",
   "react-native-builder-bob": {
