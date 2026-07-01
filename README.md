@@ -8,7 +8,15 @@ AHAP-style haptics (transient + continuous) on top of [Nitro Modules](https://ni
 
 Complete flexibility over iOS haptics with synchronous UI-thread execution.
 
-> iOS only (Core Haptics). Android support could be added in the future, but it's currently unplanned.
+> **iOS** is the primary target (Core Haptics), offering full intensity + sharpness fidelity.
+>
+> **Android** is supported as an approximation on top of `Vibrator`/`VibrationEffect`:
+>
+> - `intensity` maps to vibration **amplitude** (best on devices with amplitude control, API 26+); on devices without it, patterns degrade to on/off timing.
+> - `sharpness` drives **composition primitives** on API 30+: transient patterns and system haptics pick a crisp (`CLICK`/`TICK`) or dull (`THUD`) primitive based on the sharpness value. The continuous/waveform path has no primitive equivalent, so sharpness is ignored there; on devices below API 30 it is ignored entirely.
+> - Android exposes a **single** system vibrator, so only one pattern or continuous player is physically active at a time ("last writer wins").
+> - Continuous-player updates are re-issued vibrations (throttled), not a live-modulated stream.
+> - Requires the `VIBRATE` permission (declared by the library) and a physical device — emulators generally report no vibrator.
 
 ## Installation
 
