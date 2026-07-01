@@ -1,5 +1,5 @@
 package com.margelo.nitro.tickle
-  
+
 import com.facebook.proguard.annotations.DoNotStrip
 
 @DoNotStrip
@@ -7,65 +7,67 @@ class Tickle : HybridTickleSpec() {
   override val memorySize: Long
     get() = 0L
 
-  private var hapticsEnabled: Boolean = true
+  private val haptics = HapticFeedback.shared
 
   override fun startHaptic(events: Array<HapticEvent>, curves: Array<HapticCurve>) {
-    // TODO: Android haptics implementation not yet supported
+    haptics.startHaptic(events, curves)
   }
 
   override fun stopAllHaptics() {
-    // TODO: Android haptics implementation not yet supported
+    haptics.stopAllHaptics()
   }
 
   override fun initializeEngine() {
-    // TODO: Android haptics implementation not yet supported
+    haptics.initializeEngine()
   }
 
   override fun destroyEngine() {
-    // TODO: Android haptics implementation not yet supported
+    haptics.destroyEngine()
   }
 
+  // MARK: - Continuous Player Methods
+
   override fun createContinuousPlayer(playerId: String, initialIntensity: Double, initialSharpness: Double) {
-    // TODO: Android haptics implementation not yet supported
+    haptics.createContinuousPlayer(playerId, initialIntensity, initialSharpness)
   }
 
   override fun startContinuousPlayer(playerId: String) {
-    // TODO: Android haptics implementation not yet supported
+    haptics.startContinuousPlayer(playerId)
   }
 
   override fun updateContinuousPlayer(playerId: String, intensityControl: Double, sharpnessControl: Double) {
-    // TODO: Android haptics implementation not yet supported
+    haptics.updateContinuousPlayer(playerId, intensityControl, sharpnessControl)
   }
 
   override fun stopContinuousPlayer(playerId: String) {
-    // TODO: Android haptics implementation not yet supported
+    haptics.stopContinuousPlayer(playerId)
   }
-  
+
   override fun destroyContinuousPlayer(playerId: String) {
-    // TODO: Android haptics implementation not yet supported
+    haptics.destroyContinuousPlayer(playerId)
   }
 
   // MARK: - Global Haptics Enable/Disable
 
   override fun setHapticsEnabled(enabled: Boolean) {
-    hapticsEnabled = enabled
+    haptics.hapticsEnabled = enabled
   }
 
   override fun getHapticsEnabled(): Boolean {
-    return hapticsEnabled
+    return haptics.hapticsEnabled
   }
 
   // MARK: - System Haptics (Predefined OS-level feedback)
 
   override fun triggerImpact(style: HapticImpactStyle) {
-    // TODO: Android haptics implementation not yet supported
+    haptics.triggerImpact(style)
   }
 
   override fun triggerNotification(type: HapticNotificationType) {
-    // TODO: Android haptics implementation not yet supported
+    haptics.triggerNotification(type)
   }
 
   override fun triggerSelection() {
-    // TODO: Android haptics implementation not yet supported
+    haptics.triggerSelection()
   }
 }
