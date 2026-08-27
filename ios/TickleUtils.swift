@@ -39,6 +39,12 @@ class HapticFeedback {
     /// Stores configurations for continuous players so they can be recreated after engine reinitialization
     private var continuousPlayerConfigs: [String: ContinuousPlayerConfig] = [:]
     private let lock = NSLock()
+    /// Set when the system stops the engine (idle auto-shutdown, interruption,
+    /// suspension) so the next play call restarts it on demand. Guarded by its
+    /// own lock: the stoppedHandler fires on CoreHaptics' internal queue and
+    /// must never contend with `lock` while engine calls are in flight.
+    private var engineNeedsStart = false
+    private let engineStateLock = NSLock()
     
     public var supportsHaptics: Bool {
         return CHHapticEngine.capabilitiesForHardware().supportsHaptics
@@ -87,9 +93,20 @@ class HapticFeedback {
         // Mute audio to reduce latency for collision haptics.
         engine?.playsHapticsOnly = true
 
+        // Release the audio hardware whenever no haptic is playing. A running
+        // CHHapticEngine is an active audio client of the system's media
+        // server: an app that holds one open while foregrounded is treated as
+        // the device's current audio client, so iOS binds the volume UI to the
+        // app and re-asserts the session's volume against user changes (the
+        // device volume "turns itself back up" moments after being lowered).
+        // With auto-shutdown the engine only claims the audio system for the
+        // moments a haptic actually plays.
+        engine?.isAutoShutdownEnabled = true
+
         // The stopped handler alerts you of engine stoppage.
-        engine?.stoppedHandler = { reason in
+        engine?.stoppedHandler = { [weak self] reason in
             print("Stop Handler: The engine stopped for reason: \(reason.rawValue)")
+            self?.noteEngineStopped()
             switch reason {
             case .audioSessionInterrupt:
                 print("Audio session interrupt")
@@ -121,12 +138,14 @@ class HapticFeedback {
             }
         }
 
-        do {
-            try engine?.start()
-        } catch {
-            print("Failed to start the engine: \(error)")
-        }
-        
+        // Do NOT start the engine here: a running engine is an active audio
+        // client even with no haptic playing (see isAutoShutdownEnabled above),
+        // and this method runs on every app foreground. Play paths call
+        // ensureEngineRunning() so the engine starts on the first real haptic.
+        engineStateLock.lock()
+        engineNeedsStart = true
+        engineStateLock.unlock()
+
         // Copy configs while holding the lock, then release before recreating players
         let configsCopy = Array(continuousPlayerConfigs.values)
         lock.unlock()
@@ -193,12 +212,37 @@ class HapticFeedback {
         engine = nil
     }
 
+    private func noteEngineStopped() {
+        engineStateLock.lock()
+        engineNeedsStart = true
+        engineStateLock.unlock()
+    }
+
+    /// Restarts a system-stopped engine before playback. Auto-shutdown (and
+    /// interruptions) stop the engine while idle; advanced pattern players are
+    /// not reliably auto-restarted by the system, so play paths call this.
+    private func ensureEngineRunning() {
+        engineStateLock.lock()
+        let needsStart = engineNeedsStart
+        engineStateLock.unlock()
+        guard needsStart, let engine else { return }
+        do {
+            try engine.start()
+            engineStateLock.lock()
+            engineNeedsStart = false
+            engineStateLock.unlock()
+        } catch {
+            print("[Tickle] Engine restart failed: \(error)")
+        }
+    }
+
     public func startHapticPlayer<State: HapticAnimationState>(for state: State) {
         guard hapticsEnabled else { return }
-        
+
         lock.lock()
         defer { lock.unlock() }
-        
+
+        ensureEngineRunning()
         let key = String(describing: state)
         do {
             try hapticPlayers[key]?.start(atTime: CHHapticTimeImmediate)
@@ -307,10 +351,11 @@ class HapticFeedback {
     /// - If haptics are globally disabled, this is a no-op.
     public func startContinuousPlayer(playerId: String) {
         guard hapticsEnabled else { return }
-        
+
         lock.lock()
         defer { lock.unlock() }
-        
+
+        ensureEngineRunning()
         guard let player = continuousPlayers[playerId] else {
             // Player doesn't exist - this is safe, just a no-op
             // This can happen if start is called before create, or after destroy
